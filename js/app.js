@@ -6,7 +6,8 @@ import {
     loadSimulatedMatches, 
     saveSimulatedMatches, 
     saveSimulatedStandings, 
-    clearSimulatedData 
+    clearSimulatedData,
+    fetchLiveMatchesOnly
 } from './api.js';
 
 import { 
@@ -34,6 +35,9 @@ class AppState {
         
         // Cache for official data reset
         this.officialData = null;
+
+        // Background polling
+        this.pollingInterval = null;
     }
 
     /**
@@ -95,6 +99,102 @@ class AppState {
         clearSimulatedData();
         this.loadStateForCurrentMode();
     }
+
+    /**
+     * Starts background live scores synchronization if in official mode
+     * @param {Function} onUIUpdate - UI update callback
+     */
+    startLivePolling(onUIUpdate) {
+        if (this.mode !== 'official') return;
+        if (this.pollingInterval) clearInterval(this.pollingInterval);
+
+        // Poll every 60 seconds
+        this.pollingInterval = setInterval(() => {
+            this.syncLiveScores(onUIUpdate);
+        }, 60000);
+    }
+
+    /**
+     * Stops background live scores synchronization
+     */
+    stopLivePolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+        }
+    }
+
+    /**
+     * Fetches and syncs live scores from GitHub
+     * @param {Function} onUIUpdate - UI update callback
+     */
+    async syncLiveScores(onUIUpdate) {
+        if (this.mode !== 'official') return;
+        
+        const syncDot = document.querySelector('.sync-dot');
+        const syncText = document.getElementById('sync-text');
+        const syncBtn = document.getElementById('btn-sync-now');
+
+        // Update UI to syncing state
+        if (syncDot && syncText) {
+            syncDot.className = 'sync-dot syncing';
+            syncText.innerText = 'Sincronizando...';
+        }
+        if (syncBtn) syncBtn.classList.add('spinning');
+
+        try {
+            const liveMatches = await fetchLiveMatchesOnly();
+            
+            // Compare if anything changed
+            let changed = false;
+            liveMatches.forEach(lm => {
+                const current = this.matches.find(m => m.id === lm.id);
+                if (current) {
+                    if (current.home_score !== lm.home_score || 
+                        current.away_score !== lm.away_score || 
+                        current.finished !== lm.finished) {
+                        
+                        current.home_score = lm.home_score;
+                        current.away_score = lm.away_score;
+                        current.finished = lm.finished;
+                        current.home_scorers = lm.home_scorers;
+                        current.away_scorers = lm.away_scorers;
+                        current.time_elapsed = lm.time_elapsed;
+                        changed = true;
+                    }
+                }
+            });
+
+            if (changed) {
+                this.recalculate();
+                
+                // Update official cache to preserve updates in localStorage
+                this.officialData.matches = JSON.parse(JSON.stringify(this.matches));
+                localStorage.setItem('wc26_official_cache', JSON.stringify(this.officialData));
+                
+                onUIUpdate(); // Refresh UI
+                console.log('Live scores synchronized and UI updated!');
+            }
+
+            // Update UI to online state
+            setTimeout(() => {
+                if (syncDot && syncText) {
+                    syncDot.className = 'sync-dot online';
+                    syncText.innerText = 'Sincronizado';
+                }
+                if (syncBtn) syncBtn.classList.remove('spinning');
+            }, 500); // minimal delay for visual feedback
+
+        } catch (err) {
+            console.error('Error syncing live scores:', err);
+            // Update UI to offline state
+            if (syncDot && syncText) {
+                syncDot.className = 'sync-dot offline';
+                syncText.innerText = 'Modo offline';
+            }
+            if (syncBtn) syncBtn.classList.remove('spinning');
+        }
+    }
 }
 
 // Instantiate Global State
@@ -109,6 +209,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         initUI(appState, (shouldReloadMode = false) => {
             if (shouldReloadMode) {
                 appState.loadStateForCurrentMode();
+                if (appState.mode === 'official') {
+                    appState.startLivePolling(() => renderActiveTab(appState));
+                } else {
+                    appState.stopLivePolling();
+                }
             } else {
                 // If in simulator mode, save predictions
                 if (appState.mode === 'simulator') {
@@ -123,6 +228,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Rerender the active view
             renderActiveTab(appState);
         });
+
+        // Start initial polling if mode is official
+        if (appState.mode === 'official') {
+            appState.startLivePolling(() => renderActiveTab(appState));
+        }
     } catch (err) {
         console.error('Critical initialization error:', err);
         document.getElementById('loader').innerHTML = `

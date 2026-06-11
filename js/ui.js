@@ -137,13 +137,28 @@ export function initUI(appState, onStateChange) {
         showToast('Marcador guardado y simulado.');
     });
 
+    // Helper to toggle sync status visibility depending on mode
+    const toggleSyncStatusVisibility = (mode) => {
+        const statusEl = document.getElementById('sync-status');
+        if (statusEl) {
+            if (mode === 'simulator') {
+                statusEl.classList.add('hidden');
+            } else {
+                statusEl.classList.remove('hidden');
+            }
+        }
+    };
+
     // 5. Mode Toggle (Official vs Simulator)
     const modeToggle = document.getElementById('mode-toggle');
     modeToggle.checked = appState.mode === 'simulator';
+    toggleSyncStatusVisibility(appState.mode);
     
     modeToggle.addEventListener('change', (e) => {
         appState.mode = e.target.checked ? 'simulator' : 'official';
         localStorage.setItem('wc26_app_mode', appState.mode);
+        
+        toggleSyncStatusVisibility(appState.mode);
         
         const resetBtn = document.getElementById('btn-reset');
         if (appState.mode === 'simulator') {
@@ -168,6 +183,14 @@ export function initUI(appState, onStateChange) {
             showToast('Predicciones restablecidas.');
         }
     });
+
+    // Manual Live Sync Button
+    const syncBtn = document.getElementById('btn-sync-now');
+    if (syncBtn) {
+        syncBtn.addEventListener('click', () => {
+            appState.syncLiveScores(() => renderActiveTab(appState));
+        });
+    }
 
     // Show initial content
     document.getElementById('loader').classList.add('hidden');

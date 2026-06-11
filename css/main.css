@@ -931,3 +931,101 @@ body.dark-theme .match-time-display .time {
 .hidden {
     display: none !important;
 }
+
+/* Live Sync Status Indicator */
+.sync-status-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-color);
+    padding: 0.35rem 0.65rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+body.dark-theme .sync-status-container {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sync-dot.online {
+    background-color: var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-green);
+    animation: pulse-green 2s infinite;
+}
+
+.sync-dot.syncing {
+    background-color: var(--accent-gold);
+    box-shadow: 0 0 8px var(--accent-gold);
+    animation: pulse-gold 1s infinite;
+}
+
+.sync-dot.offline {
+    background-color: var(--text-secondary);
+    box-shadow: none;
+    animation: none;
+}
+
+.sync-text {
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+}
+
+.btn-sync-now {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.1rem;
+    border-radius: var(--radius-sm);
+    transition: transform var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-sync-now:hover {
+    transform: rotate(30deg) scale(1.15);
+}
+
+.btn-sync-now.spinning {
+    animation: spin-sync 1s linear infinite;
+}
+
+@keyframes pulse-green {
+    0% {
+        box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(5, 150, 105, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+    }
+}
+
+@keyframes pulse-gold {
+    0% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+}
+
+@keyframes spin-sync {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

@@ -131,3 +131,18 @@ export function clearSimulatedData() {
     localStorage.removeItem(STORAGE_KEYS.SIMULATED_MATCHES);
     localStorage.removeItem(STORAGE_KEYS.SIMULATED_STANDINGS);
 }
+
+/**
+ * Fetches only the matches JSON from the API for live scores updates.
+ * @returns {Promise<Array>}
+ */
+export async function fetchLiveMatchesOnly() {
+    try {
+        const response = await fetch(`${GITHUB_API_URLS.matches}?t=${Date.now()}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.warn(`Failed to fetch live matches from GitHub.`, error);
+        throw error;
+    }
+}
