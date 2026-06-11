@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copa Mundial FIFA 2026 - Honduras Time, Calendario y Simulador</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Sigue el calendario completo del Mundial de Fútbol 2026 en Honduras. Revisa los partidos, grupos, bracket de eliminatorias y simula los resultados en vivo.">
+    <meta name="keywords" content="mundial 2026, copa del mundo, calendario mundial, eliminatorias mundial, simulador mundial, horario honduras, fifa 2026">
+    <meta name="author" content="Antigravity Dev">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS Modulares -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/bracket.css">
+</head>
+<body class="light-theme">
+    
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="ball-icon">⚽</span>
+                <h1>MUNDIAL <span>2026</span></h1>
+            </div>
+            
+            <div class="controls-area">
+                <!-- Modo Predictor Toggle -->
+                <div class="predictor-toggle-container">
+                    <span class="toggle-label">Modo Simulador</span>
+                    <label class="switch">
+                        <input type="checkbox" id="mode-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                
+                <!-- Botón de Resetear (solo en simulador) -->
+                <button id="btn-reset" class="btn btn-secondary hidden" title="Restablecer todos los resultados a los oficiales">
+                    Restablecer 🔄
+                </button>
+                
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" class="btn btn-icon" aria-label="Cambiar Tema" title="Cambiar Tema">
+                    <span class="theme-icon-light">☀️</span>
+                    <span class="theme-icon-dark hidden">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Zone Info Banner (Honduras Time Reminder) -->
+    <div class="timezone-banner">
+        <p>🕒 Mostrando todos los partidos en el <strong>Horario de Honduras (UTC-6)</strong></p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="app-nav">
+        <div class="nav-container">
+            <button class="nav-tab active" data-tab="tab-groups">
+                <span class="tab-icon">📋</span> Grupos
+            </button>
+            <button class="nav-tab" data-tab="tab-matches">
+                <span class="tab-icon">📅</span> Calendario
+            </button>
+            <button class="nav-tab" data-tab="tab-bracket">
+                <span class="tab-icon">🏆</span> Fase Final
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="app-content">
+        <!-- Loader -->
+        <div id="loader" class="loader-container">
+            <div class="spinner"></div>
+            <p>Cargando datos del Mundial 2026...</p>
+        </div>
+
+        <!-- Vista 1: Grupos -->
+        <section id="tab-groups" class="tab-pane active">
+            <div class="groups-grid" id="groups-container">
+                <!-- Se poblará dinámicamente con las tarjetas de cada grupo -->
+            </div>
+        </section>
+
+        <!-- Vista 2: Calendario / Partidos -->
+        <section id="tab-matches" class="tab-pane">
+            <div class="filters-container">
+                <div class="search-box">
+                    <input type="text" id="search-team" placeholder="Buscar selección (ej: Argentina, Brasil, Francia)...">
+                </div>
+                
+                <div class="filters-row">
+                    <select id="filter-phase" class="filter-select">
+                        <option value="all">Todas las fases</option>
+                        <option value="group">Fase de Grupos</option>
+                        <option value="knockout">Fase de Eliminatorias</option>
+                    </select>
+                    
+                    <select id="filter-group" class="filter-select">
+                        <option value="all">Todos los grupos</option>
+                        <option value="A">Grupo A</option>
+                        <option value="B">Grupo B</option>
+                        <option value="C">Grupo C</option>
+                        <option value="D">Grupo D</option>
+                        <option value="E">Grupo E</option>
+                        <option value="F">Grupo F</option>
+                        <option value="G">Grupo G</option>
+                        <option value="H">Grupo H</option>
+                        <option value="I">Grupo I</option>
+                        <option value="J">Grupo J</option>
+                        <option value="K">Grupo K</option>
+                        <option value="L">Grupo L</option>
+                    </select>
+
+                    <input type="date" id="filter-date" class="filter-date" min="2026-06-11" max="2026-07-19">
+                    
+                    <button id="btn-clear-filters" class="btn btn-secondary" title="Quitar todos los filtros de búsqueda y calendario">
+                        Limpiar Filtros 🧹
+                    </button>
+                </div>
+            </div>
+
+            <div class="matches-list" id="matches-container">
+                <!-- Se poblará dinámicamente con las tarjetas de los partidos -->
+            </div>
+        </section>
+
+        <!-- Vista 3: Bracket / Eliminatorias -->
+        <section id="tab-bracket" class="tab-pane">
+            <div class="bracket-instructions">
+                <p>💡 Desliza horizontalmente para ver las llaves completas, desde la Ronda de 32 hasta la Final.</p>
+            </div>
+            
+            <div class="bracket-outer-wrapper">
+                <div class="bracket-wrapper" id="bracket-container">
+                    <!-- Se poblará dinámicamente con las rondas del bracket -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para Editar Marcadores -->
+    <div id="modal-score" class="modal-backdrop">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Editar Resultado</h2>
+                <button id="modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="match-info-label" id="modal-match-meta">Partido 1 • Fase de Grupos</p>
+                <p class="match-stadium-label" id="modal-match-venue">Estadio Azteca, Ciudad de México</p>
+                
+                <div class="modal-score-editor">
+                    <!-- Equipo 1 -->
+                    <div class="team-editor">
+                        <img id="modal-flag1" class="team-flag" src="" alt="">
+                        <span id="modal-name1" class="team-name">México</span>
+                        <input type="number" id="modal-score1" min="0" max="99" placeholder="0">
+                    </div>
+                    
+                    <div class="score-vs">VS</div>
+                    
+                    <!-- Equipo 2 -->
+                    <div class="team-editor">
+                        <input type="number" id="modal-score2" min="0" max="99" placeholder="0">
+                        <span id="modal-name2" class="team-name">Sudáfrica</span>
+                        <img id="modal-flag2" class="team-flag" src="" alt="">
+                    </div>
+                </div>
+
+                <!-- Selección de Ganador de Penalties (solo para eliminatorias en caso de empate) -->
+                <div id="penalty-container" class="penalty-editor hidden">
+                    <p class="penalty-title">Empate en eliminatoria: ¿Quién avanza por penales?</p>
+                    <div class="penalty-choices">
+                        <label class="penalty-choice">
+                            <input type="radio" name="penalty-winner" id="penalty-winner-1" value="1">
+                            <span id="penalty-label-1">Avanza Equipo 1</span>
+                        </label>
+                        <label class="penalty-choice">
+                            <input type="radio" name="penalty-winner" id="penalty-winner-2" value="2">
+                            <span id="penalty-label-2">Avanza Equipo 2</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-cancel-score" class="btn btn-secondary">Cancelar</button>
+                <button id="btn-save-score" class="btn btn-primary">Guardar Marcador</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>© 2026 Calendario Copa Mundial FIFA 2026. Todos los derechos reservados.</p>
+        <p>Datos provistos por API pública comunitaria de la Copa del Mundo 2026.</p>
+    </footer>
+
+    <!-- JS Modular Entry Point -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+/* design tokens and variables */
+
+:root {
+    /* Fonts */
+    --font-title: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    /* Theme-independent values */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* LIGHT THEME (Default) */
+    --bg-app: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+    --bg-header: rgba(255, 255, 255, 0.85);
+    --bg-banner: #0f172a;
+    --text-banner: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.65);
+    --card-border: rgba(255, 255, 255, 0.6);
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: rgba(226, 232, 240, 0.8);
+    
+    /* Accents & Buttons */
+    --accent-gold: #b45309; /* Deep gold */
+    --accent-green: #059669; /* Rich emerald */
+    --accent-blue: #1d4ed8; /* Navy blue */
+    
+    --btn-primary-bg: #0f172a;
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #e2e8f0;
+    --btn-secondary-text: #1e293b;
+    
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    --shadow-gold: 0 4px 14px rgba(180, 83, 9, 0.15);
+    
+    --blur-intensity: 12px;
+    --modal-backdrop-bg: rgba(15, 23, 42, 0.4);
+    
+    /* Table specific colors */
+    --th-bg: rgba(241, 245, 249, 0.7);
+    --tr-hover: rgba(255, 255, 255, 0.8);
+}
+
+body.dark-theme {
+    /* DARK THEME */
+    --bg-app: linear-gradient(135deg, #090d16 0%, #03050a 100%);
+    --bg-header: rgba(13, 20, 35, 0.8);
+    --bg-banner: #1e293b;
+    --text-banner: #e2e8f0;
+    --card-bg: rgba(17, 25, 40, 0.6);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --border-color: rgba(255, 255, 255, 0.06);
+    
+    /* Accents & Buttons */
+    --accent-gold: #f59e0b; /* Bright Gold */
+    --accent-green: #10b981; /* Glowing Green */
+    --accent-blue: #3b82f6;
+    
+    --btn-primary-bg: #f8fafc;
+    --btn-primary-text: #090d16;
+    --btn-secondary-bg: #1e293b;
+    --btn-secondary-text: #f8fafc;
+    
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    --shadow-gold: 0 4px 14px rgba(245, 158, 11, 0.3);
+    
+    --blur-intensity: 16px;
+    --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
+    
+    /* Table specific colors */
+    --th-bg: rgba(30, 41, 59, 0.5);
+    --tr-hover: rgba(255, 255, 255, 0.03);
+}
