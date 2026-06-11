@@ -108,6 +108,9 @@ class AppState {
         if (this.mode !== 'official') return;
         if (this.pollingInterval) clearInterval(this.pollingInterval);
 
+        // Run once immediately on page load
+        this.syncLiveScores(onUIUpdate);
+
         // Poll every 60 seconds
         this.pollingInterval = setInterval(() => {
             this.syncLiveScores(onUIUpdate);

@@ -22,11 +22,93 @@ const STORAGE_KEYS = {
 };
 
 /**
+ * Fetches the live matches data trying multiple endpoints/proxies in a fallback chain.
+ * @param {boolean} allowStaticFallback - If true, falls back to static GitHub raw and local JSON on failure.
+ * @returns {Promise<Array>} Games matches array
+ */
+async function fetchMatchesFromApi(allowStaticFallback = true) {
+    // 1. Direct fetch to live hosted API
+    try {
+        const response = await fetch(`https://worldcup26.ir/get/games?t=${Date.now()}`);
+        if (!response.ok) throw new Error(`Direct fetch HTTP status: ${response.status}`);
+        const data = await response.json();
+        if (data && data.games) return data.games;
+        throw new Error("Direct fetch response is missing games field");
+    } catch (err) {
+        console.warn("Direct fetch of matches failed, trying cors.lol proxy...", err);
+    }
+
+    // 2. Fetch via secure CORS proxy 1: cors.lol
+    try {
+        const targetUrl = encodeURIComponent(`https://worldcup26.ir/get/games?t=${Date.now()}`);
+        const response = await fetch(`https://api.cors.lol/?url=${targetUrl}`);
+        if (!response.ok) throw new Error(`cors.lol HTTP status: ${response.status}`);
+        const data = await response.json();
+        if (data && data.games) return data.games;
+        throw new Error("cors.lol response is missing games field");
+    } catch (proxyErr) {
+        console.warn("cors.lol CORS proxy failed, trying allorigins proxy...", proxyErr);
+    }
+
+    // 3. Fetch via secure CORS proxy 2: allorigins.win
+    try {
+        const response = await fetch(`https://api.allorigins.win/raw?url=https://worldcup26.ir/get/games`);
+        if (!response.ok) throw new Error(`allorigins HTTP status: ${response.status}`);
+        const data = await response.json();
+        if (data && data.games) return data.games;
+        throw new Error("allorigins response is missing games field");
+    } catch (proxyErr) {
+        console.warn("allorigins CORS proxy failed, trying corsproxy.io...", proxyErr);
+    }
+
+    // 4. Fetch via secure CORS proxy 3: corsproxy.io
+    try {
+        const response = await fetch(`https://corsproxy.io/?https://worldcup26.ir/get/games?t=${Date.now()}`);
+        if (!response.ok) throw new Error(`corsproxy.io HTTP status: ${response.status}`);
+        const data = await response.json();
+        if (data && data.games) return data.games;
+        throw new Error("corsproxy.io response is missing games field");
+    } catch (proxyErr) {
+        console.warn("corsproxy.io CORS proxy failed", proxyErr);
+    }
+
+    if (allowStaticFallback) {
+        console.warn("All live proxies failed. Falling back to static sources...");
+        
+        // 5. Fallback to GitHub raw
+        try {
+            const response = await fetch(GITHUB_API_URLS.matches);
+            if (!response.ok) throw new Error(`GitHub raw HTTP status: ${response.status}`);
+            return await response.json();
+        } catch (gitErr) {
+            console.warn("GitHub raw matches failed, falling back to local...", gitErr);
+        }
+
+        // 6. Fallback to local data
+        try {
+            const fallbackRes = await fetch(LOCAL_FALLBACK_URLS.matches);
+            if (!fallbackRes.ok) throw new Error(`Local fallback HTTP status: ${fallbackRes.status}`);
+            return await fallbackRes.json();
+        } catch (localErr) {
+            console.error("Local fallback matches failed!", localErr);
+            throw localErr;
+        }
+    } else {
+        throw new Error("All live score endpoints failed to respond.");
+    }
+}
+
+/**
  * Fetches a resource with a local fallback on failure.
  * @param {string} key - The key of GITHUB_API_URLS
  * @returns {Promise<any>} Parsed JSON data
  */
 async function fetchResource(key) {
+    if (key === 'matches') {
+        return await fetchMatchesFromApi(true);
+    }
+
+    // For other keys (teams, stadiums, standings)
     try {
         const response = await fetch(GITHUB_API_URLS[key]);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -137,12 +219,5 @@ export function clearSimulatedData() {
  * @returns {Promise<Array>}
  */
 export async function fetchLiveMatchesOnly() {
-    try {
-        const response = await fetch(`${GITHUB_API_URLS.matches}?t=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.warn(`Failed to fetch live matches from GitHub.`, error);
-        throw error;
-    }
+    return await fetchMatchesFromApi(false);
 }
