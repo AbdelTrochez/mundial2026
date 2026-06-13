@@ -331,6 +331,18 @@ function renderMatches(appState) {
         return true;
     });
 
+    // Sort matches chronologically in Honduras Time (UTC-6)
+    filteredMatches.sort((a, b) => {
+        const dateA = convertToHondurasTime(a.local_date, a.stadium_id);
+        const dateB = convertToHondurasTime(b.local_date, b.stadium_id);
+        
+        const diff = dateA.getTime() - dateB.getTime();
+        if (diff !== 0) return diff;
+        
+        // Secondary sort by ID to ensure stable sorting order
+        return parseInt(a.id) - parseInt(b.id);
+    });
+
     if (filteredMatches.length === 0) {
         container.innerHTML = '<div class="no-results-msg">No se encontraron partidos para los filtros seleccionados.</div>';
         return;
