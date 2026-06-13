@@ -569,18 +569,18 @@ body.dark-theme .match-card.editable-match:hover {
 }
 
 .match-status-badge.not-started {
-    background: var(--border-color);
-    color: var(--text-secondary);
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
 }
 
 .match-status-badge.finished {
-    background: rgba(9, 13, 22, 0.1);
+    background: rgba(107, 114, 128, 0.12);
     color: var(--text-secondary);
 }
 
 body.dark-theme .match-status-badge.finished {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .match-status-badge.live {
@@ -654,6 +654,42 @@ body.dark-theme .match-status-badge.finished {
     color: var(--text-secondary);
     font-weight: 400;
     font-size: 0.9rem;
+}
+
+.match-score-display.live-score-badge {
+    border: 1px solid var(--accent-green);
+    color: var(--accent-green);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.match-scorers-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: -0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.home-scorers-list {
+    text-align: right;
+}
+
+.away-scorers-list {
+    text-align: left;
+}
+
+.scorers-spacer {
+    min-width: 70px;
+}
+
+.scorer-item {
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .match-time-display {

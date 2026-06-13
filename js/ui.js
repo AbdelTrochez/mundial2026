@@ -7,6 +7,30 @@ let activeTabId = 'tab-groups';
 let currentEditingMatch = null;
 
 /**
+ * Parses scorers string from API database format.
+ * Handles Postgres array format (e.g. "{“Player 9'”,”Player 67'”}"), JSON arrays, and CSV.
+ * @param {string} scorersStr 
+ * @returns {Array<string>} List of scorers
+ */
+function parseScorers(scorersStr) {
+    if (!scorersStr || scorersStr === 'null' || scorersStr === 'undefined' || scorersStr.trim() === '') return [];
+    
+    let clean = scorersStr.trim();
+    if (clean.startsWith('{') && clean.endsWith('}')) {
+        clean = clean.slice(1, -1);
+    }
+    if (clean.startsWith('[') && clean.endsWith(']')) {
+        clean = clean.slice(1, -1);
+    }
+    
+    clean = clean.replace(/[“”"]/g, '');
+    
+    return clean.split(',')
+        .map(s => s.trim())
+        .filter(s => s && s !== 'null' && s !== 'undefined');
+}
+
+/**
  * Initializes UI Event Listeners (tabs, search, filters, modals)
  * @param {Object} appState - Global application state
  * @param {Function} onStateChange - Callback function when state changes (saves/recalculates)
@@ -378,23 +402,26 @@ function renderMatches(appState) {
 
         // Status Badge
         let statusClass = 'not-started';
-        let statusText = 'No iniciado';
-        if (m.finished === 'TRUE' || m.finished === true) {
+        let statusText = 'NO INICIADO';
+        const isLive = m.time_elapsed && m.time_elapsed !== 'notstarted' && m.time_elapsed !== 'finished';
+        const isFinished = m.finished === 'TRUE' || m.finished === true;
+
+        if (isFinished) {
             statusClass = 'finished';
-            statusText = 'Finalizado';
-        } else if (m.time_elapsed && m.time_elapsed !== 'notstarted') {
+            statusText = 'FINALIZADO';
+        } else if (isLive) {
             statusClass = 'live';
-            statusText = 'En vivo';
+            statusText = m.time_elapsed === 'live' ? 'EN CURSO' : `EN CURSO - ${m.time_elapsed}`;
         }
 
         const isKnockout = m.type !== 'group';
-        const isFinished = m.finished === 'TRUE' || m.finished === true;
+        const showScore = isFinished || isLive;
         let scoreDisplayHtml = '';
         
-        if (isFinished) {
+        if (showScore) {
             // Show score
             scoreDisplayHtml = `
-                <div class="match-score-display">
+                <div class="match-score-display ${isLive ? 'live-score-badge' : ''}">
                     <span>${m.home_score}</span>
                     <span class="score-divider">-</span>
                     <span>${m.away_score}</span>
@@ -414,6 +441,26 @@ function renderMatches(appState) {
                 <div class="match-time-display">
                     <span class="time">${timeStr}</span>
                     <span class="date-short">${dateShort}</span>
+                </div>
+            `;
+        }
+
+        // Goalscorers timeline display
+        const homeScorers = parseScorers(m.home_scorers);
+        const awayScorers = parseScorers(m.away_scorers);
+        const hasScorers = homeScorers.length > 0 || awayScorers.length > 0;
+        
+        let scorersHtml = '';
+        if (hasScorers) {
+            scorersHtml = `
+                <div class="match-scorers-container">
+                    <div class="home-scorers-list">
+                        ${homeScorers.map(s => `<div class="scorer-item">⚽ ${s}</div>`).join('')}
+                    </div>
+                    <div class="scorers-spacer"></div>
+                    <div class="away-scorers-list">
+                        ${awayScorers.map(s => `<div class="scorer-item">${s} ⚽</div>`).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -442,6 +489,8 @@ function renderMatches(appState) {
                     <span class="match-team-name" title="${aNameSp}">${aNameSp}</span>
                 </div>
             </div>
+            
+            ${scorersHtml}
             
             <div class="match-footer">
                 <span class="match-stadium" title="${venueName}">📍 ${venueName}</span>
