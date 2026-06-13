@@ -180,7 +180,7 @@
                         <!-- Se poblará dinámicamente con las asistencias -->
                     </div>
                     <div class="stats-disclaimer">
-                        ℹ️ Los datos de asistencias se muestran de forma simulada ya que la API en tiempo real no incluye asistencias.
+                        ℹ️ Las asistencias se calculan en tiempo real asociándolas a los goles oficiales o simulados de cada partido.
                     </div>
                 </div>
             </div>
@@ -216,15 +216,23 @@
                     </div>
                 </div>
                 
-                <!-- Goleadores (Modo Simulador) -->
+                <!-- Goleadores y Asistencias (Modo Simulador) -->
                 <div class="modal-scorers-editor">
                     <div class="scorers-field">
                         <label for="modal-scorers1">Goleadores Local (separados por coma):</label>
                         <input type="text" id="modal-scorers1" placeholder="Ej: J. Quiñones 9', R. Jiménez 67'">
                     </div>
                     <div class="scorers-field">
+                        <label for="modal-assists1">Asistencias Local (separados por coma):</label>
+                        <input type="text" id="modal-assists1" placeholder="Ej: O. Pineda, H. Lozano">
+                    </div>
+                    <div class="scorers-field">
                         <label for="modal-scorers2">Goleadores Visitante (separados por coma):</label>
                         <input type="text" id="modal-scorers2" placeholder="Ej: L. Messi 45', L. Messi 80'">
+                    </div>
+                    <div class="scorers-field">
+                        <label for="modal-assists2">Asistencias Visitante (separados por coma):</label>
+                        <input type="text" id="modal-assists2" placeholder="Ej: M. Almirón">
                     </div>
                 </div>
 

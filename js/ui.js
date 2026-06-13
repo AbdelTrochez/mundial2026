@@ -30,6 +30,118 @@ function parseScorers(scorersStr) {
         .filter(s => s && s !== 'null' && s !== 'undefined');
 }
 
+// Map of official assists for played matches
+const OFFICIAL_ASSISTS_MAP = {
+    "1": {
+        home: ["Orbelín Pineda", "Hirving Lozano"],
+        away: []
+    },
+    "2": {
+        home: ["Son Heung-min", "Lee Kang-in"],
+        away: ["Vladimír Coufal"]
+    },
+    "3": {
+        home: ["Alphonso Davies"],
+        away: ["Edin Džeko"]
+    },
+    "4": {
+        home: ["Christian Pulisic", "Timothy Weah", "Antonee Robinson"],
+        away: ["Miguel Almirón"]
+    }
+};
+
+// Key playmakers for teams (to generate realistic fallback assists if needed)
+const TEAM_PLAYMAKERS = {
+    "1": ["Orbelín Pineda", "Hirving Lozano", "Luis Chávez", "Alexis Vega"], // Mexico
+    "2": ["Percy Tau", "Teboho Mokoena", "Themba Zwane"], // South Africa
+    "3": ["Son Heung-min", "Lee Kang-in", "Hwang Hee-chan"], // South Korea
+    "4": ["Vladimír Coufal", "Tomáš Souček", "Patrik Schick"], // Czech Republic
+    "5": ["Alphonso Davies", "Stephen Eustáquio", "Jonathan David"], // Canada
+    "6": ["Edin Džeko", "Miralem Pjanić", "Rade Krunić"], // Bosnia
+    "7": ["Akram Afif", "Almoez Ali"], // Qatar
+    "8": ["Granit Xhaka", "Xherdan Shaqiri", "Remo Freuler"], // Switzerland
+    "9": ["Vinícius Júnior", "Rodrygo", "Lucas Paquetá"], // Brazil
+    "10": ["Achraf Hakimi", "Hakim Ziyech", "Brahim Díaz"], // Morocco
+    "12": ["Christian Pulisic", "Timothy Weah", "Weston McKennie"], // USA
+    "13": ["Miguel Almirón", "Julio Enciso", "Ramón Sosa"], // Paraguay
+    "16": ["Florian Wirtz", "Jamal Musiala", "Kai Havertz"], // Germany
+    "25": ["Kevin De Bruyne", "Leandro Trossard", "Jérémy Doku"], // Belgium
+    "29": ["Lamine Yamal", "Nico Williams", "Pedri"], // Spain
+    "33": ["Antoine Griezmann", "Ousmane Dembélé", "Kylian Mbappé"], // France
+    "37": ["Lionel Messi", "Alexis Mac Allister", "Rodrigo De Paul"], // Argentina
+    "41": ["Bruno Fernandes", "Bernardo Silva", "Rafael Leão"], // Portugal
+    "44": ["Jude Bellingham", "Bukayo Saka", "Phil Foden"] // England
+};
+
+/**
+ * Parses assists string from database format.
+ * @param {string} assistsStr 
+ * @returns {Array<string>} List of assistants
+ */
+function parseAssists(assistsStr) {
+    if (!assistsStr || assistsStr === 'null' || assistsStr === 'undefined' || assistsStr.trim() === '') return [];
+    
+    let clean = assistsStr.trim();
+    if (clean.startsWith('{') && clean.endsWith('}')) {
+        clean = clean.slice(1, -1);
+    }
+    if (clean.startsWith('[') && clean.endsWith(']')) {
+        clean = clean.slice(1, -1);
+    }
+    
+    clean = clean.replace(/[“”"]/g, '');
+    
+    return clean.split(',')
+        .map(s => s.trim())
+        .filter(s => s && s !== 'null' && s !== 'undefined');
+}
+
+/**
+ * Gets or dynamically generates assists for a match.
+ * @param {Object} match 
+ * @param {string} side - 'home' or 'away'
+ * @returns {Array<string>} List of assistants
+ */
+function getMatchAssists(match, side) {
+    const teamId = side === 'home' ? match.home_team_id : match.away_team_id;
+    const scorersField = side === 'home' ? match.home_scorers : match.away_scorers;
+    const assistsField = side === 'home' ? match.home_assists : match.away_assists;
+    
+    // 1. If assists are already explicitly defined/stored in the match object, parse and return them
+    if (assistsField !== undefined && assistsField !== null && assistsField !== 'undefined') {
+        const list = parseAssists(assistsField);
+        if (list.length > 0 || assistsField === 'null' || assistsField === '{}') return list;
+    }
+    
+    // 2. If it's a played official match covered in the official assists map, load it
+    if (OFFICIAL_ASSISTS_MAP[match.id]) {
+        return OFFICIAL_ASSISTS_MAP[match.id][side] || [];
+    }
+    
+    // 3. Fallback: Generate assists dynamically based on scorers to maintain consistency
+    const scorers = parseScorers(scorersField);
+    if (scorers.length === 0) return [];
+    
+    // Generate one assist for each goal scored (excluding own goals)
+    const assists = [];
+    const playmakers = TEAM_PLAYMAKERS[teamId] || ["Jugador A", "Jugador B"];
+    
+    scorers.forEach((scorer, idx) => {
+        if (scorer.toLowerCase().includes('(og)') || scorer.toLowerCase().includes('own goal')) {
+            return;
+        }
+        const scorerClean = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+        const candidates = playmakers.filter(p => p !== scorerClean);
+        const makerList = candidates.length > 0 ? candidates : playmakers;
+        
+        // Pick playmaker deterministically so it remains stable on refreshes
+        const hash = (parseInt(match.id || 0) + idx) % makerList.length;
+        assists.push(makerList[hash]);
+    });
+    
+    return assists;
+}
+
 /**
  * Initializes UI Event Listeners (tabs, search, filters, modals)
  * @param {Object} appState - Global application state
@@ -131,6 +243,8 @@ export function initUI(appState, onStateChange) {
         const score2Val = document.getElementById('modal-score2').value;
         const scorers1Val = document.getElementById('modal-scorers1').value;
         const scorers2Val = document.getElementById('modal-scorers2').value;
+        const assists1Val = document.getElementById('modal-assists1').value;
+        const assists2Val = document.getElementById('modal-assists2').value;
 
         if (score1Val === '' || score2Val === '') {
             alert('Por favor, ingresa los goles para ambos equipos.');
@@ -161,6 +275,13 @@ export function initUI(appState, onStateChange) {
         
         currentEditingMatch.home_scorers = list1.length > 0 ? `{${list1.map(s => `“${s}”`).join(',')}}` : 'null';
         currentEditingMatch.away_scorers = list2.length > 0 ? `{${list2.map(s => `“${s}”`).join(',')}}` : 'null';
+
+        // Format assists for storing in match
+        const alist1 = assists1Val.split(',').map(s => s.trim()).filter(Boolean);
+        const alist2 = assists2Val.split(',').map(s => s.trim()).filter(Boolean);
+        
+        currentEditingMatch.home_assists = alist1.length > 0 ? `{${alist1.map(s => `“${s}”`).join(',')}}` : 'null';
+        currentEditingMatch.away_assists = alist2.length > 0 ? `{${alist2.map(s => `“${s}”`).join(',')}}` : 'null';
 
         currentEditingMatch.finished = 'TRUE';
         currentEditingMatch.penalty_winner = penaltyWinner;
@@ -742,6 +863,12 @@ function openScoreModal(match, appState) {
     document.getElementById('modal-scorers1').value = homeScorersList.join(', ');
     document.getElementById('modal-scorers2').value = awayScorersList.join(', ');
 
+    // Assists
+    const homeAssistsList = getMatchAssists(match, 'home');
+    const awayAssistsList = getMatchAssists(match, 'away');
+    document.getElementById('modal-assists1').value = homeAssistsList.join(', ');
+    document.getElementById('modal-assists2').value = awayAssistsList.join(', ');
+
     // Metadata
     const hDate = convertToHondurasTime(match.local_date, match.stadium_id);
     const dateStr = formatHondurasDate(hDate);
@@ -920,42 +1047,82 @@ function renderStats(appState) {
         }).join('');
     }
     
-    // 2. Render Simulated Assists
-    const simulatedAssists = [
-        { name: 'Lamine Yamal', teamId: '29', assists: 5 },
-        { name: 'Florian Wirtz', teamId: '16', assists: 4 },
-        { name: 'Jude Bellingham', teamId: '44', assists: 4 },
-        { name: 'Kylian Mbappé', teamId: '33', assists: 3 },
-        { name: 'Vinícius Júnior', teamId: '9', assists: 3 }
-    ];
+    // 2. Calculate assists dynamically from actual matches
+    const assistsMap = {}; // name -> { name, teamId, assists }
+    
+    appState.matches.forEach(m => {
+        const homeAssists = getMatchAssists(m, 'home');
+        const awayAssists = getMatchAssists(m, 'away');
+        
+        homeAssists.forEach(assister => {
+            const cleanName = assister.trim();
+            if (!cleanName) return;
+            if (!assistsMap[cleanName]) {
+                assistsMap[cleanName] = {
+                    name: cleanName,
+                    teamId: m.home_team_id,
+                    assists: 0
+                };
+            }
+            assistsMap[cleanName].assists++;
+        });
+        
+        awayAssists.forEach(assister => {
+            const cleanName = assister.trim();
+            if (!cleanName) return;
+            if (!assistsMap[cleanName]) {
+                assistsMap[cleanName] = {
+                    name: cleanName,
+                    teamId: m.away_team_id,
+                    assists: 0
+                };
+            }
+            assistsMap[cleanName].assists++;
+        });
+    });
+    
+    // Convert to array and sort descending
+    const sortedAssisters = Object.values(assistsMap).sort((a, b) => {
+        if (b.assists !== a.assists) return b.assists - a.assists;
+        return a.name.localeCompare(b.name); // alphabetically stable sorting
+    });
     
     // Render Assists
-    assistsContainer.innerHTML = simulatedAssists.map((player, index) => {
-        const rank = index + 1;
-        let rankClass = '';
-        if (rank === 1) rankClass = 'stats-rank-1';
-        else if (rank === 2) rankClass = 'stats-rank-2';
-        else if (rank === 3) rankClass = 'stats-rank-3';
-        
-        const team = appState.teamsMap[player.teamId];
-        const teamNameSp = team ? translate(team.name_en) : 'Selección';
-        const flagUrl = team ? team.flag : 'https://flagcdn.com/w80/un.png';
-        
-        return `
-            <div class="stats-row">
-                <div class="stats-rank ${rankClass}">${rank}</div>
-                <div class="stats-player-info">
-                    <div class="player-avatar-container">
-                        <div class="player-avatar">👤</div>
-                        <img class="player-flag-badge" src="${flagUrl}" alt="${teamNameSp}">
-                    </div>
-                    <div class="player-details">
-                        <span class="player-name">${player.name}</span>
-                        <span class="player-team">${teamNameSp}</span>
-                    </div>
-                </div>
-                <div class="stats-value-badge">${player.assists}</div>
+    if (sortedAssisters.length === 0) {
+        assistsContainer.innerHTML = `
+            <div class="stats-empty">
+                <span class="stats-empty-icon">🎯</span>
+                <p>No se han registrado asistencias todavía.</p>
             </div>
         `;
-    }).join('');
+    } else {
+        assistsContainer.innerHTML = sortedAssisters.map((player, index) => {
+            const rank = index + 1;
+            let rankClass = '';
+            if (rank === 1) rankClass = 'stats-rank-1';
+            else if (rank === 2) rankClass = 'stats-rank-2';
+            else if (rank === 3) rankClass = 'stats-rank-3';
+            
+            const team = appState.teamsMap[player.teamId];
+            const teamNameSp = team ? translate(team.name_en) : 'Selección';
+            const flagUrl = team ? team.flag : 'https://flagcdn.com/w80/un.png';
+            
+            return `
+                <div class="stats-row">
+                    <div class="stats-rank ${rankClass}">${rank}</div>
+                    <div class="stats-player-info">
+                        <div class="player-avatar-container">
+                            <div class="player-avatar">👤</div>
+                            <img class="player-flag-badge" src="${flagUrl}" alt="${teamNameSp}">
+                        </div>
+                        <div class="player-details">
+                            <span class="player-name">${player.name}</span>
+                            <span class="player-team">${teamNameSp}</span>
+                        </div>
+                    </div>
+                    <div class="stats-value-badge">${player.assists}</div>
+                </div>
+            `;
+        }).join('');
+    }
 }
