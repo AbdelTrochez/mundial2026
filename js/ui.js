@@ -129,6 +129,8 @@ export function initUI(appState, onStateChange) {
         
         const score1Val = document.getElementById('modal-score1').value;
         const score2Val = document.getElementById('modal-score2').value;
+        const scorers1Val = document.getElementById('modal-scorers1').value;
+        const scorers2Val = document.getElementById('modal-scorers2').value;
 
         if (score1Val === '' || score2Val === '') {
             alert('Por favor, ingresa los goles para ambos equipos.');
@@ -152,6 +154,14 @@ export function initUI(appState, onStateChange) {
         // Apply changes to match
         currentEditingMatch.home_score = String(s1);
         currentEditingMatch.away_score = String(s2);
+        
+        // Format scorers for storing in match
+        const list1 = scorers1Val.split(',').map(s => s.trim()).filter(Boolean);
+        const list2 = scorers2Val.split(',').map(s => s.trim()).filter(Boolean);
+        
+        currentEditingMatch.home_scorers = list1.length > 0 ? `{${list1.map(s => `“${s}”`).join(',')}}` : 'null';
+        currentEditingMatch.away_scorers = list2.length > 0 ? `{${list2.map(s => `“${s}”`).join(',')}}` : 'null';
+
         currentEditingMatch.finished = 'TRUE';
         currentEditingMatch.penalty_winner = penaltyWinner;
         currentEditingMatch.isSimulated = true;
@@ -232,6 +242,8 @@ export function renderActiveTab(appState) {
         renderMatches(appState);
     } else if (activeTabId === 'tab-bracket') {
         renderBracket(appState);
+    } else if (activeTabId === 'tab-stats') {
+        renderStats(appState);
     }
 }
 
@@ -724,6 +736,12 @@ function openScoreModal(match, appState) {
     document.getElementById('modal-score1').value = (match.finished === 'TRUE' || match.finished === true) ? match.home_score : '';
     document.getElementById('modal-score2').value = (match.finished === 'TRUE' || match.finished === true) ? match.away_score : '';
 
+    // Scorers
+    const homeScorersList = parseScorers(match.home_scorers);
+    const awayScorersList = parseScorers(match.away_scorers);
+    document.getElementById('modal-scorers1').value = homeScorersList.join(', ');
+    document.getElementById('modal-scorers2').value = awayScorersList.join(', ');
+
     // Metadata
     const hDate = convertToHondurasTime(match.local_date, match.stadium_id);
     const dateStr = formatHondurasDate(hDate);
@@ -810,4 +828,134 @@ function showToast(msg) {
     setTimeout(() => {
         toast.classList.remove('active');
     }, 2500);
+}
+
+/**
+ * Render Statistics View (Top Goalscorers and Top Assists)
+ * @param {Object} appState 
+ */
+function renderStats(appState) {
+    const scorersContainer = document.getElementById('scorers-list-container');
+    const assistsContainer = document.getElementById('assists-list-container');
+    
+    if (!scorersContainer || !assistsContainer) return;
+    
+    // 1. Calculate Goalscorers dynamically
+    const goalsMap = {}; // name -> { name, teamId, goals }
+    
+    appState.matches.forEach(m => {
+        // Only count if there are goals scored
+        const homeScorers = parseScorers(m.home_scorers);
+        const awayScorers = parseScorers(m.away_scorers);
+        
+        homeScorers.forEach(scorer => {
+            const cleanName = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+            if (!cleanName) return;
+            if (!goalsMap[cleanName]) {
+                goalsMap[cleanName] = {
+                    name: cleanName,
+                    teamId: m.home_team_id,
+                    goals: 0
+                };
+            }
+            goalsMap[cleanName].goals++;
+        });
+        
+        awayScorers.forEach(scorer => {
+            const cleanName = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+            if (!cleanName) return;
+            if (!goalsMap[cleanName]) {
+                goalsMap[cleanName] = {
+                    name: cleanName,
+                    teamId: m.away_team_id,
+                    goals: 0
+                };
+            }
+            goalsMap[cleanName].goals++;
+        });
+    });
+    
+    // Convert to array and sort descending
+    const sortedScorers = Object.values(goalsMap).sort((a, b) => {
+        if (b.goals !== a.goals) return b.goals - a.goals;
+        return a.name.localeCompare(b.name); // alphabetically stable sorting
+    });
+    
+    // Render Goalscorers
+    if (sortedScorers.length === 0) {
+        scorersContainer.innerHTML = `
+            <div class="stats-empty">
+                <span class="stats-empty-icon">⚽</span>
+                <p>No se han registrado goles todavía.</p>
+            </div>
+        `;
+    } else {
+        scorersContainer.innerHTML = sortedScorers.map((player, index) => {
+            const rank = index + 1;
+            let rankClass = '';
+            if (rank === 1) rankClass = 'stats-rank-1';
+            else if (rank === 2) rankClass = 'stats-rank-2';
+            else if (rank === 3) rankClass = 'stats-rank-3';
+            
+            const team = appState.teamsMap[player.teamId];
+            const teamNameSp = team ? translate(team.name_en) : 'Selección';
+            const flagUrl = team ? team.flag : 'https://flagcdn.com/w80/un.png';
+            
+            return `
+                <div class="stats-row">
+                    <div class="stats-rank ${rankClass}">${rank}</div>
+                    <div class="stats-player-info">
+                        <div class="player-avatar-container">
+                            <div class="player-avatar">👤</div>
+                            <img class="player-flag-badge" src="${flagUrl}" alt="${teamNameSp}">
+                        </div>
+                        <div class="player-details">
+                            <span class="player-name">${player.name}</span>
+                            <span class="player-team">${teamNameSp}</span>
+                        </div>
+                    </div>
+                    <div class="stats-value-badge">${player.goals}</div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // 2. Render Simulated Assists
+    const simulatedAssists = [
+        { name: 'Kevin De Bruyne', teamId: '25', assists: 5 },
+        { name: 'Lionel Messi', teamId: '37', assists: 4 },
+        { name: 'Bruno Fernandes', teamId: '41', assists: 4 },
+        { name: 'Antoine Griezmann', teamId: '33', assists: 3 },
+        { name: 'Neymar Jr', teamId: '9', assists: 3 }
+    ];
+    
+    // Render Assists
+    assistsContainer.innerHTML = simulatedAssists.map((player, index) => {
+        const rank = index + 1;
+        let rankClass = '';
+        if (rank === 1) rankClass = 'stats-rank-1';
+        else if (rank === 2) rankClass = 'stats-rank-2';
+        else if (rank === 3) rankClass = 'stats-rank-3';
+        
+        const team = appState.teamsMap[player.teamId];
+        const teamNameSp = team ? translate(team.name_en) : 'Selección';
+        const flagUrl = team ? team.flag : 'https://flagcdn.com/w80/un.png';
+        
+        return `
+            <div class="stats-row">
+                <div class="stats-rank ${rankClass}">${rank}</div>
+                <div class="stats-player-info">
+                    <div class="player-avatar-container">
+                        <div class="player-avatar">👤</div>
+                        <img class="player-flag-badge" src="${flagUrl}" alt="${teamNameSp}">
+                    </div>
+                    <div class="player-details">
+                        <span class="player-name">${player.name}</span>
+                        <span class="player-team">${teamNameSp}</span>
+                    </div>
+                </div>
+                <div class="stats-value-badge">${player.assists}</div>
+            </div>
+        `;
+    }).join('');
 }

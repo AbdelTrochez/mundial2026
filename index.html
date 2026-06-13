@@ -79,6 +79,9 @@
             <button class="nav-tab" data-tab="tab-bracket">
                 <span class="tab-icon">🏆</span> Fase Final
             </button>
+            <button class="nav-tab" data-tab="tab-stats">
+                <span class="tab-icon">📊</span> Estadísticas
+            </button>
         </div>
     </nav>
 
@@ -152,6 +155,36 @@
                 </div>
             </div>
         </section>
+
+        <!-- Vista 4: Estadísticas (Goleadores y Asistencias) -->
+        <section id="tab-stats" class="tab-pane">
+            <div class="stats-container">
+                <!-- Tarjeta Goleadores -->
+                <div class="glass-card stats-card">
+                    <div class="stats-card-header">
+                        <h2>🏆 Goleadores</h2>
+                        <span class="stats-subtitle">Líderes de goles del mundial en tiempo real</span>
+                    </div>
+                    <div class="stats-list" id="scorers-list-container">
+                        <!-- Se poblará dinámicamente con los goleadores -->
+                    </div>
+                </div>
+
+                <!-- Tarjeta Asistencias -->
+                <div class="glass-card stats-card">
+                    <div class="stats-card-header">
+                        <h2>🎯 Asistencias</h2>
+                        <span class="stats-subtitle">Líderes de pases de gol</span>
+                    </div>
+                    <div class="stats-list" id="assists-list-container">
+                        <!-- Se poblará dinámicamente con las asistencias -->
+                    </div>
+                    <div class="stats-disclaimer">
+                        ℹ️ Los datos de asistencias se muestran de forma simulada ya que la API en tiempo real no incluye asistencias.
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Modal para Editar Marcadores -->
@@ -180,6 +213,18 @@
                         <input type="number" id="modal-score2" min="0" max="99" placeholder="0">
                         <span id="modal-name2" class="team-name">Sudáfrica</span>
                         <img id="modal-flag2" class="team-flag" src="" alt="">
+                    </div>
+                </div>
+                
+                <!-- Goleadores (Modo Simulador) -->
+                <div class="modal-scorers-editor">
+                    <div class="scorers-field">
+                        <label for="modal-scorers1">Goleadores Local (separados por coma):</label>
+                        <input type="text" id="modal-scorers1" placeholder="Ej: J. Quiñones 9', R. Jiménez 67'">
+                    </div>
+                    <div class="scorers-field">
+                        <label for="modal-scorers2">Goleadores Visitante (separados por coma):</label>
+                        <input type="text" id="modal-scorers2" placeholder="Ej: L. Messi 45', L. Messi 80'">
                     </div>
                 </div>
 

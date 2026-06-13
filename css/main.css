@@ -1065,3 +1065,264 @@ body.dark-theme .sync-status-container {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Vista de Estadísticas */
+.stats-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stats-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.stats-card-header {
+    margin-bottom: 1.25rem;
+}
+
+.stats-card-header h2 {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+body.dark-theme .stats-row {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.stats-row:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.45);
+}
+
+body.dark-theme .stats-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Rank Numbers / Medals */
+.stats-rank {
+    font-family: var(--font-title);
+    font-weight: 800;
+    font-size: 1.1rem;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    margin-right: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.stats-rank-1 {
+    background: linear-gradient(135deg, #fef08a 0%, #eab308 100%);
+    color: #78350f;
+    box-shadow: 0 2px 4px rgba(234, 179, 8, 0.3);
+}
+
+.stats-rank-2 {
+    background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+    color: #334155;
+    box-shadow: 0 2px 4px rgba(203, 213, 225, 0.3);
+}
+
+.stats-rank-3 {
+    background: linear-gradient(135deg, #ffedd5 0%, #c2410c 100%);
+    color: #7c2d12;
+    box-shadow: 0 2px 4px rgba(194, 65, 12, 0.3);
+}
+
+/* Player Info with Avatar */
+.stats-player-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Circular Avatar with Silhouette and Flag Badge */
+.player-avatar-container {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.player-avatar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    user-select: none;
+    border: 1.5px solid var(--card-border);
+}
+
+body.dark-theme .player-avatar {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.player-flag-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 20px;
+    height: 14px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+body.dark-theme .player-flag-badge {
+    border-color: #1e293b;
+}
+
+.player-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.player-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-team {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Value Badge (Goals or Assists count) */
+.stats-value-badge {
+    font-family: var(--font-title);
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--accent-gold);
+    background: rgba(180, 83, 9, 0.08);
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-sm);
+    min-width: 44px;
+    text-align: center;
+}
+
+body.dark-theme .stats-value-badge {
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.stats-disclaimer {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px dashed var(--border-color);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+body.dark-theme .stats-disclaimer {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+/* Empty Stats State */
+.stats-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    gap: 0.5rem;
+}
+
+.stats-empty-icon {
+    font-size: 2rem;
+}
+
+/* Scorers Editor in Modal */
+.modal-scorers-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 1rem;
+}
+
+.scorers-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.scorers-field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.scorers-field input[type="text"] {
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    outline: none;
+    font-size: 0.85rem;
+    width: 100%;
+}
+
+.scorers-field input[type="text"]:focus {
+    border-color: var(--accent-gold);
+}
