@@ -922,11 +922,11 @@ function renderStats(appState) {
     
     // 2. Render Simulated Assists
     const simulatedAssists = [
-        { name: 'Kevin De Bruyne', teamId: '25', assists: 5 },
-        { name: 'Lionel Messi', teamId: '37', assists: 4 },
-        { name: 'Bruno Fernandes', teamId: '41', assists: 4 },
-        { name: 'Antoine Griezmann', teamId: '33', assists: 3 },
-        { name: 'Neymar Jr', teamId: '9', assists: 3 }
+        { name: 'Lamine Yamal', teamId: '29', assists: 5 },
+        { name: 'Florian Wirtz', teamId: '16', assists: 4 },
+        { name: 'Jude Bellingham', teamId: '44', assists: 4 },
+        { name: 'Kylian Mbappé', teamId: '33', assists: 3 },
+        { name: 'Vinícius Júnior', teamId: '9', assists: 3 }
     ];
     
     // Render Assists
