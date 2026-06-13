@@ -42,7 +42,7 @@
     gap: 3rem;
     min-width: max-content;
     padding: 1rem 0;
-    min-height: 1000px; /* Gives enough vertical space for spacing */
+    min-height: 1600px; /* Expanded vertical space to separate cards */
 }
 
 /* Bracket Round Column */
@@ -51,7 +51,7 @@
     flex-direction: column;
     width: 220px;
     height: 100%;
-    min-height: 960px;
+    min-height: 1500px;
 }
 
 .bracket-round.final-round-col {
@@ -68,6 +68,7 @@
     justify-content: space-around;
     flex: 1;
     height: 100%;
+    gap: 1.25rem; /* Separates the cards vertically */
 }
 
 .bracket-round-header {
