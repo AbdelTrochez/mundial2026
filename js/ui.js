@@ -176,6 +176,26 @@ export function initUI(appState, onStateChange) {
     document.getElementById('filter-date').addEventListener('change', () => {
         if (activeTabId === 'tab-matches') renderMatches(appState);
     });
+    document.getElementById('btn-today-filter').addEventListener('click', () => {
+        const hnLocal = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Tegucigalpa"}));
+        const y = hnLocal.getFullYear();
+        const m = String(hnLocal.getMonth() + 1).padStart(2, '0');
+        const d = String(hnLocal.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+        
+        document.getElementById('filter-date').value = todayStr;
+        
+        // Switch to matches tab so user can see today's matches list
+        const matchesTabBtn = document.querySelector('.nav-tab[data-tab="tab-matches"]');
+        if (matchesTabBtn && activeTabId !== 'tab-matches') {
+            matchesTabBtn.click();
+        } else {
+            renderMatches(appState);
+        }
+        
+        showToast('Mostrando partidos de hoy 📅');
+    });
+
     document.getElementById('btn-clear-filters').addEventListener('click', () => {
         document.getElementById('search-team').value = '';
         document.getElementById('filter-phase').value = 'all';
