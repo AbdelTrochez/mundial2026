@@ -729,7 +729,14 @@ body.dark-theme .match-time-display .time {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 75%;
+    max-width: 55%; /* Reduced to give more space to the date */
+}
+
+.match-footer-right {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    white-space: nowrap;
 }
 
 .match-indicator-hint {

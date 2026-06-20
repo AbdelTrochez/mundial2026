@@ -143,6 +143,16 @@ function getMatchAssists(match, side) {
 }
 
 /**
+ * Gets the 2-letter uppercase Spanish prefix of the day of the week.
+ * @param {Date} date 
+ * @returns {string} e.g. "SA" for Sábado
+ */
+function getShortDayName(date) {
+    const shortDays = ['DO', 'LU', 'MA', 'MI', 'JU', 'VI', 'SA'];
+    return shortDays[date.getUTCDay()];
+}
+
+/**
  * Initializes UI Event Listeners (tabs, search, filters, modals)
  * @param {Object} appState - Global application state
  * @param {Function} onStateChange - Callback function when state changes (saves/recalculates)
@@ -588,7 +598,7 @@ function renderMatches(appState) {
             const displayHours = h % 12 || 12;
             const displayMinutes = String(mMin).padStart(2, '0');
             const timeStr = `${displayHours}:${displayMinutes} ${ampm}`;
-            const dateShort = `${hDate.getUTCDate()} de ${hDate.toLocaleString('es-ES', { month: 'short', timeZone: 'UTC' })}`;
+            const dateShort = `${getShortDayName(hDate)} ${hDate.getUTCDate()} de ${hDate.toLocaleString('es-ES', { month: 'short', timeZone: 'UTC' })}`;
             
             scoreDisplayHtml = `
                 <div class="match-time-display">
@@ -647,7 +657,10 @@ function renderMatches(appState) {
             
             <div class="match-footer">
                 <span class="match-stadium" title="${venueName}">📍 ${venueName}</span>
-                ${appState.mode === 'simulator' ? '<span class="match-score-display-hint match-indicator-hint">Simular ✍️</span>' : ''}
+                <div class="match-footer-right">
+                    <span class="match-date-footer">📅 ${getShortDayName(hDate)} ${String(hDate.getUTCDate()).padStart(2, '0')}/${String(hDate.getUTCMonth() + 1).padStart(2, '0')}/${hDate.getUTCFullYear()}</span>
+                    ${appState.mode === 'simulator' ? '<span class="match-score-display-hint match-indicator-hint">| Simular ✍️</span>' : ''}
+                </div>
             </div>
         `;
 
@@ -727,7 +740,7 @@ function renderBracket(appState) {
             const bHours = bh % 12 || 12;
             const bMinutes = String(bm).padStart(2, '0');
             const bTimeStr = `${bHours}:${bMinutes} ${bAmpm}`;
-            const dateShort = `${hDate.getUTCDate()} ${hDate.toLocaleString('es-ES', { month: 'short', timeZone: 'UTC' })} ${bTimeStr}`;
+            const dateShort = `${getShortDayName(hDate)} ${hDate.getUTCDate()} ${hDate.toLocaleString('es-ES', { month: 'short', timeZone: 'UTC' })} ${bTimeStr}`;
 
             const simulatedClass = m.isSimulated ? 'simulated-match' : '';
             const editableClass = appState.mode === 'simulator' ? 'editable-match' : '';
