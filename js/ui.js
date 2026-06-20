@@ -30,6 +30,60 @@ function parseScorers(scorersStr) {
         .filter(s => s && s !== 'null' && s !== 'undefined');
 }
 
+const PLAYER_NAME_MAP = {
+    // Argentina
+    "Livnl Msi": "Lionel Messi",
+    "Lionel Msi": "Lionel Messi",
+    "Livnl Messi": "Lionel Messi",
+    "Leonel Messi": "Lionel Messi",
+    "L. Msi": "Lionel Messi",
+    
+    // Colombia
+    "Lviiz Diaz": "Luis Díaz",
+    "Luiz Diaz": "Luis Díaz",
+    "Dnil Mvnvz": "Daniel Muñoz",
+    "Daniel Mvnvz": "Daniel Muñoz",
+    "Khamintvn Kampaz": "Jaminton Campaz",
+    
+    // Netherlands
+    "Kvdi Khakpv": "Cody Gakpo",
+    "Cody Khakpv": "Cody Gakpo",
+    
+    // Uzbekistan
+    "Abas Bk Fiz Allh Af": "Abbosbek Fayzullaev",
+    "Abbosbek Fiz Allh Af": "Abbosbek Fayzullaev",
+    
+    // Switzerland
+    "Jvhan Mnzambi": "Johan Minzambi",
+    "Rvbn Vargas": "Ruben Vargas",
+    
+    // Czech Republic
+    "mikhal Sadilk": "Michal Sadílek",
+    
+    // Ghana
+    "Kalb Iirnki": "Caleb Yirenkyi",
+    
+    // Morocco
+    "Asmaail Saibari": "Ismael Saibari",
+    
+    // USA
+    "Kamrvn Bargs": "Cameron Burgess"
+};
+
+function normalizePlayerName(name) {
+    if (!name) return "";
+    const clean = name.trim();
+    if (PLAYER_NAME_MAP[clean]) {
+        return PLAYER_NAME_MAP[clean];
+    }
+    for (const key in PLAYER_NAME_MAP) {
+        if (clean.toLowerCase() === key.toLowerCase()) {
+            return PLAYER_NAME_MAP[key];
+        }
+    }
+    return clean;
+}
+
 // Map of official assists for played matches
 const OFFICIAL_ASSISTS_MAP = {
     "1": {
@@ -62,15 +116,44 @@ const TEAM_PLAYMAKERS = {
     "8": ["Granit Xhaka", "Xherdan Shaqiri", "Remo Freuler"], // Switzerland
     "9": ["Vinícius Júnior", "Rodrygo", "Lucas Paquetá"], // Brazil
     "10": ["Achraf Hakimi", "Hakim Ziyech", "Brahim Díaz"], // Morocco
-    "12": ["Christian Pulisic", "Timothy Weah", "Weston McKennie"], // USA
-    "13": ["Miguel Almirón", "Julio Enciso", "Ramón Sosa"], // Paraguay
-    "16": ["Florian Wirtz", "Jamal Musiala", "Kai Havertz"], // Germany
+    "11": ["Duckens Nazon", "Frantzdy Pierrot"], // Haiti
+    "12": ["John McGinn", "Scott McTominay", "Andrew Robertson"], // Scotland
+    "13": ["Christian Pulisic", "Timothy Weah", "Weston McKennie"], // USA
+    "14": ["Miguel Almirón", "Julio Enciso", "Ramón Sosa"], // Paraguay
+    "15": ["Jackson Irvine", "Craig Goodwin", "Martin Boyle"], // Australia
+    "16": ["Hakan Çalhanoğlu", "Arda Güler", "Kenan Yıldız"], // Turkey
+    "17": ["Florian Wirtz", "Jamal Musiala", "Kai Havertz"], // Germany
+    "18": ["Juninho Bacuna", "Leandro Bacuna"], // Curaçao
+    "19": ["Franck Kessié", "Simon Adingra", "Sébastien Haller"], // Ivory Coast
+    "20": ["Moisés Caicedo", "Kendry Páez", "Pervis Estupiñán"], // Ecuador
+    "21": ["Cody Gakpo", "Tijjani Reijnders", "Xavi Simons"], // Netherlands
+    "22": ["Kaoru Mitoma", "Takefusa Kubo", "Wataru Endo"], // Japan
+    "23": ["Alexander Isak", "Dejan Kulusevski", "Viktor Gyökeres"], // Sweden
+    "24": ["Youssef Msakni", "Ellyes Skhiri"], // Tunisia
     "25": ["Kevin De Bruyne", "Leandro Trossard", "Jérémy Doku"], // Belgium
+    "26": ["Mohamed Salah", "Mostafa Mohamed", "Trezeguet"], // Egypt
+    "27": ["Mehdi Taremi", "Sardar Azmoun", "Alireza Jahanbakhsh"], // Iran
+    "28": ["Chris Wood", "Sarpreet Singh"], // New Zealand
     "29": ["Lamine Yamal", "Nico Williams", "Pedri"], // Spain
+    "30": ["Ryan Mendes", "Bebé"], // Cape Verde
+    "31": ["Salem Al-Dawsari", "Firas Al-Buraikan"], // Saudi Arabia
+    "32": ["Federico Valverde", "Darwin Núñez", "Giorgian de Arrascaeta"], // Uruguay
     "33": ["Antoine Griezmann", "Ousmane Dembélé", "Kylian Mbappé"], // France
+    "34": ["Sadio Mané", "Ismaïla Sarr", "Nicolas Jackson"], // Senegal
+    "35": ["Aymen Hussein", "Ali Jasim"], // Iraq
+    "36": ["Martin Ødegaard", "Erling Haaland", "Antonio Nusa"], // Norway
     "37": ["Lionel Messi", "Alexis Mac Allister", "Rodrigo De Paul"], // Argentina
+    "38": ["Riyad Mahrez", "Said Benrahma", "Houssem Aouar"], // Algeria
+    "39": ["Marcel Sabitzer", "Konrad Laimer", "Christoph Baumgartner"], // Austria
+    "40": ["Musa Al-Taamari", "Yazan Al-Naimat"], // Jordan
     "41": ["Bruno Fernandes", "Bernardo Silva", "Rafael Leão"], // Portugal
-    "44": ["Jude Bellingham", "Bukayo Saka", "Phil Foden"] // England
+    "42": ["Yoane Wissa", "Chancel Mbemba"], // DR Congo
+    "43": ["Eldor Shomurodov", "Oston Urunov", "Jaloliddin Masharipov"], // Uzbekistan
+    "44": ["James Rodríguez", "Luis Díaz", "Jhon Arias"], // Colombia
+    "45": ["Jude Bellingham", "Bukayo Saka", "Phil Foden"], // England
+    "46": ["Luka Modrić", "Mateo Kovačić", "Andre Kramarić"], // Croatia
+    "47": ["Mohammed Kudus", "Jordan Ayew", "Inaki Williams"], // Ghana
+    "48": ["Adalberto Carrasquilla", "José Fajardo"] // Panama
 };
 
 /**
@@ -109,13 +192,13 @@ function getMatchAssists(match, side) {
     
     // 1. If assists are already explicitly defined/stored in the match object, parse and return them
     if (assistsField !== undefined && assistsField !== null && assistsField !== 'undefined') {
-        const list = parseAssists(assistsField);
+        const list = parseAssists(assistsField).map(normalizePlayerName);
         if (list.length > 0 || assistsField === 'null' || assistsField === '{}') return list;
     }
     
     // 2. If it's a played official match covered in the official assists map, load it
     if (OFFICIAL_ASSISTS_MAP[match.id]) {
-        return OFFICIAL_ASSISTS_MAP[match.id][side] || [];
+        return (OFFICIAL_ASSISTS_MAP[match.id][side] || []).map(normalizePlayerName);
     }
     
     // 3. Fallback: Generate assists dynamically based on scorers to maintain consistency
@@ -124,13 +207,14 @@ function getMatchAssists(match, side) {
     
     // Generate one assist for each goal scored (excluding own goals)
     const assists = [];
-    const playmakers = TEAM_PLAYMAKERS[teamId] || ["Jugador A", "Jugador B"];
+    const playmakers = TEAM_PLAYMAKERS[teamId] || [];
+    if (playmakers.length === 0) return [];
     
     scorers.forEach((scorer, idx) => {
         if (scorer.toLowerCase().includes('(og)') || scorer.toLowerCase().includes('own goal')) {
             return;
         }
-        const scorerClean = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+        const scorerClean = normalizePlayerName(scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim());
         const candidates = playmakers.filter(p => p !== scorerClean);
         const makerList = candidates.length > 0 ? candidates : playmakers;
         
@@ -615,14 +699,22 @@ function renderMatches(appState) {
         
         let scorersHtml = '';
         if (hasScorers) {
+            const formatScorerItem = (s) => {
+                const scorerClean = s.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+                const normalizedClean = normalizePlayerName(scorerClean);
+                const minuteMatch = s.match(/\s+\d+(?:\+\d+)?'$/);
+                const minute = minuteMatch ? minuteMatch[0] : '';
+                return `${normalizedClean}${minute}`;
+            };
+            
             scorersHtml = `
                 <div class="match-scorers-container">
                     <div class="home-scorers-list">
-                        ${homeScorers.map(s => `<div class="scorer-item">⚽ ${s}</div>`).join('')}
+                        ${homeScorers.map(s => `<div class="scorer-item">⚽ ${formatScorerItem(s)}</div>`).join('')}
                     </div>
                     <div class="scorers-spacer"></div>
                     <div class="away-scorers-list">
-                        ${awayScorers.map(s => `<div class="scorer-item">${s} ⚽</div>`).join('')}
+                        ${awayScorers.map(s => `<div class="scorer-item">${formatScorerItem(s)} ⚽</div>`).join('')}
                     </div>
                 </div>
             `;
@@ -891,8 +983,15 @@ function openScoreModal(match, appState) {
     document.getElementById('modal-score2').value = (match.finished === 'TRUE' || match.finished === true) ? match.away_score : '';
 
     // Scorers
-    const homeScorersList = parseScorers(match.home_scorers);
-    const awayScorersList = parseScorers(match.away_scorers);
+    const formatScorerItemForModal = (s) => {
+        const scorerClean = s.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+        const normalizedClean = normalizePlayerName(scorerClean);
+        const minuteMatch = s.match(/\s+\d+(?:\+\d+)?'$/);
+        const minute = minuteMatch ? minuteMatch[0] : '';
+        return `${normalizedClean}${minute}`;
+    };
+    const homeScorersList = parseScorers(match.home_scorers).map(formatScorerItemForModal);
+    const awayScorersList = parseScorers(match.away_scorers).map(formatScorerItemForModal);
     document.getElementById('modal-scorers1').value = homeScorersList.join(', ');
     document.getElementById('modal-scorers2').value = awayScorersList.join(', ');
 
@@ -1009,7 +1108,8 @@ function renderStats(appState) {
         const awayScorers = parseScorers(m.away_scorers);
         
         homeScorers.forEach(scorer => {
-            const cleanName = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+            const scorerClean = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+            const cleanName = normalizePlayerName(scorerClean);
             if (!cleanName) return;
             if (!goalsMap[cleanName]) {
                 goalsMap[cleanName] = {
@@ -1022,7 +1122,8 @@ function renderStats(appState) {
         });
         
         awayScorers.forEach(scorer => {
-            const cleanName = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+            const scorerClean = scorer.replace(/\s+\d+(?:\+\d+)?'$/, '').trim();
+            const cleanName = normalizePlayerName(scorerClean);
             if (!cleanName) return;
             if (!goalsMap[cleanName]) {
                 goalsMap[cleanName] = {
@@ -1088,7 +1189,7 @@ function renderStats(appState) {
         const awayAssists = getMatchAssists(m, 'away');
         
         homeAssists.forEach(assister => {
-            const cleanName = assister.trim();
+            const cleanName = normalizePlayerName(assister.trim());
             if (!cleanName) return;
             if (!assistsMap[cleanName]) {
                 assistsMap[cleanName] = {
@@ -1101,7 +1202,7 @@ function renderStats(appState) {
         });
         
         awayAssists.forEach(assister => {
-            const cleanName = assister.trim();
+            const cleanName = normalizePlayerName(assister.trim());
             if (!cleanName) return;
             if (!assistsMap[cleanName]) {
                 assistsMap[cleanName] = {
