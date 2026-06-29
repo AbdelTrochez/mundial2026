@@ -864,21 +864,73 @@ body.dark-theme .match-time-display .time {
     width: 100%;
 }
 
-.team-editor input[type="number"] {
-    width: 60px;
-    height: 50px;
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: 800;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-    background: var(--card-bg);
-    color: var(--text-primary);
-    outline: none;
+/* Score Stepper Styles (Premium Inputs) */
+.score-stepper {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    height: 42px;
+    width: 120px;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
-.team-editor input[type="number"]:focus {
+body:not(.dark-theme) .score-stepper {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.score-stepper:focus-within {
     border-color: var(--accent-gold);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
+.btn-stepper {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    width: 35px;
+    height: 100%;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.btn-stepper:hover {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent-gold);
+}
+
+.score-stepper input[type="number"] {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-title);
+    font-weight: 800;
+    font-size: 1.25rem;
+    text-align: center;
+    width: 50px;
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    -moz-appearance: textfield;
+}
+
+.score-stepper input[type="number"]::-webkit-outer-spin-button,
+.score-stepper input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .score-vs {

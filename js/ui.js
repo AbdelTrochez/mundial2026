@@ -333,6 +333,28 @@ export function initUI(appState, onStateChange) {
     // 4. Modal Handlers
     document.getElementById('modal-close').addEventListener('click', closeModal);
     document.getElementById('btn-cancel-score').addEventListener('click', closeModal);
+
+    // Stepper buttons for modal score editing (+ / -)
+    document.querySelectorAll('.btn-stepper').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            const action = btn.getAttribute('data-action');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+
+            let currentVal = parseInt(input.value);
+            if (isNaN(currentVal)) currentVal = 0;
+
+            if (action === 'inc') {
+                input.value = Math.min(99, currentVal + 1);
+            } else if (action === 'dec') {
+                input.value = Math.max(0, currentVal - 1);
+            }
+
+            // Trigger the input event programmatically to update penalty options
+            input.dispatchEvent(new Event('input'));
+        });
+    });
     
     // Auto-select penalty choice visually when checked
     document.querySelectorAll('input[name="penalty-winner"]').forEach(input => {
@@ -798,6 +820,93 @@ function renderBracket(appState) {
         { name: '16VOS', matches: rightR32, side: 'right', id: 'r-r32' }
     ];
 
+    // Helper function to render a single match card in the bracket
+    const renderMatchCardHtml = (m) => {
+        const hTeam = appState.teamsMap[m.home_team_id];
+        const aTeam = appState.teamsMap[m.away_team_id];
+
+        const hNameSp = hTeam ? translate(hTeam.name_en) : translate(m.home_team_label);
+        const aNameSp = aTeam ? translate(aTeam.name_en) : translate(m.away_team_label);
+
+        const hFlag = hTeam ? hTeam.flag : 'https://flagcdn.com/w80/un.png';
+        const aFlag = aTeam ? aTeam.flag : 'https://flagcdn.com/w80/un.png';
+
+        const hScore = (m.finished === 'TRUE' || m.finished === true) ? m.home_score : '';
+        const aScore = (m.finished === 'TRUE' || m.finished === true) ? m.away_score : '';
+
+        // Check winner and loser classes, plus penalty indicator
+        let hWinnerClass = '';
+        let aWinnerClass = '';
+        let hLoserClass = '';
+        let aLoserClass = '';
+        let hPenIndicator = '';
+        let aPenIndicator = '';
+
+        if (m.finished === 'TRUE' || m.finished === true) {
+            const s1 = parseInt(m.home_score) || 0;
+            const s2 = parseInt(m.away_score) || 0;
+            if (s1 > s2 || (s1 === s2 && m.penalty_winner === '1')) {
+                hWinnerClass = 'winner';
+                aLoserClass = 'loser';
+                if (s1 === s2 && m.penalty_winner === '1') {
+                    hPenIndicator = '<span class="penalty-indicator">(p)</span>';
+                }
+            } else if (s2 > s1 || (s1 === s2 && m.penalty_winner === '2')) {
+                aWinnerClass = 'winner';
+                hLoserClass = 'loser';
+                if (s1 === s2 && m.penalty_winner === '2') {
+                    aPenIndicator = '<span class="penalty-indicator">(p)</span>';
+                }
+            }
+        }
+
+        const hDate = convertToHondurasTime(m.local_date, m.stadium_id);
+        const bh = hDate.getUTCHours();
+        const bm = hDate.getUTCMinutes();
+        const bAmpm = bh >= 12 ? 'PM' : 'AM';
+        const bHours = bh % 12 || 12;
+        const bMinutes = String(bm).padStart(2, '0');
+        const bTimeStr = `${bHours}:${bMinutes} ${bAmpm}`;
+        const dateShort = `${getShortDayName(hDate)} ${hDate.getUTCDate()} ${hDate.toLocaleString('es-ES', { month: 'short', timeZone: 'UTC' })} ${bTimeStr}`;
+
+        const simulatedClass = m.isSimulated ? 'simulated-match' : '';
+        const editableClass = appState.mode === 'simulator' ? 'editable-match' : '';
+        
+        const isFinalMatch = m.type === 'final';
+        const isThirdMatch = m.type === 'third';
+        
+        const matchCardClass = isFinalMatch ? 'final-match-card' : (isThirdMatch ? 'third-place-card' : '');
+        const cardBadge = isFinalMatch ? '<div class="final-badge">🏆 GRAN FINAL</div>' : (isThirdMatch ? '<div class="third-place-badge">🥉 TERCER LUGAR</div>' : '');
+
+        return `
+            <div class="bracket-match ${simulatedClass} ${editableClass} ${matchCardClass}" data-match-id="${m.id}">
+                ${cardBadge}
+                <div class="bracket-match-meta">
+                    <span>P. ${m.id}</span>
+                    <span>${dateShort}</span>
+                </div>
+                
+                <!-- Home Team -->
+                <div class="bracket-match-team ${hWinnerClass} ${hLoserClass}" data-team-id="${m.home_team_id}">
+                    <div class="bracket-team-info">
+                        <img class="team-flag" src="${hFlag}" alt="${hNameSp}">
+                        <span class="team-name">${hNameSp}</span>
+                    </div>
+                    <span class="bracket-team-score">${hScore}${hPenIndicator}</span>
+                </div>
+                
+                <!-- Away Team -->
+                <div class="bracket-match-team ${aWinnerClass} ${aLoserClass}" data-team-id="${m.away_team_id}">
+                    <div class="bracket-team-info">
+                        <img class="team-flag" src="${aFlag}" alt="${aNameSp}">
+                        <span class="team-name">${aNameSp}</span>
+                    </div>
+                    <span class="bracket-team-score">${aScore}${aPenIndicator}</span>
+                </div>
+            </div>
+        `;
+    };
+
     // Append columns for rounds
     roundData.forEach((r, roundIdx) => {
         const col = document.createElement('div');
@@ -811,91 +920,26 @@ function renderBracket(appState) {
         
         let matchesHtml = '';
 
-        r.matches.forEach(m => {
-            const hTeam = appState.teamsMap[m.home_team_id];
-            const aTeam = appState.teamsMap[m.away_team_id];
-
-            const hNameSp = hTeam ? translate(hTeam.name_en) : translate(m.home_team_label);
-            const aNameSp = aTeam ? translate(aTeam.name_en) : translate(m.away_team_label);
-
-            const hFlag = hTeam ? hTeam.flag : 'https://flagcdn.com/w80/un.png';
-            const aFlag = aTeam ? aTeam.flag : 'https://flagcdn.com/w80/un.png';
-
-            const hScore = (m.finished === 'TRUE' || m.finished === true) ? m.home_score : '';
-            const aScore = (m.finished === 'TRUE' || m.finished === true) ? m.away_score : '';
-
-            // Check winner and loser classes, plus penalty indicator
-            let hWinnerClass = '';
-            let aWinnerClass = '';
-            let hLoserClass = '';
-            let aLoserClass = '';
-            let hPenIndicator = '';
-            let aPenIndicator = '';
-
-            if (m.finished === 'TRUE' || m.finished === true) {
-                const s1 = parseInt(m.home_score) || 0;
-                const s2 = parseInt(m.away_score) || 0;
-                if (s1 > s2 || (s1 === s2 && m.penalty_winner === '1')) {
-                    hWinnerClass = 'winner';
-                    aLoserClass = 'loser';
-                    if (s1 === s2 && m.penalty_winner === '1') {
-                        hPenIndicator = '<span class="penalty-indicator">(p)</span>';
-                    }
-                } else if (s2 > s1 || (s1 === s2 && m.penalty_winner === '2')) {
-                    aWinnerClass = 'winner';
-                    hLoserClass = 'loser';
-                    if (s1 === s2 && m.penalty_winner === '2') {
-                        aPenIndicator = '<span class="penalty-indicator">(p)</span>';
-                    }
-                }
-            }
-
-            const hDate = convertToHondurasTime(m.local_date, m.stadium_id);
-            const bh = hDate.getUTCHours();
-            const bm = hDate.getUTCMinutes();
-            const bAmpm = bh >= 12 ? 'PM' : 'AM';
-            const bHours = bh % 12 || 12;
-            const bMinutes = String(bm).padStart(2, '0');
-            const bTimeStr = `${bHours}:${bMinutes} ${bAmpm}`;
-            const dateShort = `${getShortDayName(hDate)} ${hDate.getUTCDate()} ${hDate.toLocaleString('es-ES', { month: 'short', timeZone: 'UTC' })} ${bTimeStr}`;
-
-            const simulatedClass = m.isSimulated ? 'simulated-match' : '';
-            const editableClass = appState.mode === 'simulator' ? 'editable-match' : '';
+        if (r.side === 'center') {
+            const finalM = r.matches.find(m => m.type === 'final');
+            const thirdM = r.matches.find(m => m.type === 'third');
             
-            const isFinalMatch = m.type === 'final';
-            const isThirdMatch = m.type === 'third';
+            const finalCardHtml = finalM ? renderMatchCardHtml(finalM) : '';
+            const thirdCardHtml = thirdM ? renderMatchCardHtml(thirdM) : '';
             
-            const matchCardClass = isFinalMatch ? 'final-match-card' : (isThirdMatch ? 'third-place-card' : '');
-            const cardBadge = isFinalMatch ? '<div class="final-badge">🏆 GRAN FINAL</div>' : (isThirdMatch ? '<div class="third-place-badge">🥉 TERCER LUGAR</div>' : '');
-
-            matchesHtml += `
-                <div class="bracket-match ${simulatedClass} ${editableClass} ${matchCardClass}" data-match-id="${m.id}">
-                    ${cardBadge}
-                    <div class="bracket-match-meta">
-                        <span>P. ${m.id}</span>
-                        <span>${dateShort}</span>
-                    </div>
-                    
-                    <!-- Home Team -->
-                    <div class="bracket-match-team ${hWinnerClass} ${hLoserClass}" data-team-id="${m.home_team_id}">
-                        <div class="bracket-team-info">
-                            <img class="team-flag" src="${hFlag}" alt="${hNameSp}">
-                            <span class="team-name">${hNameSp}</span>
-                        </div>
-                        <span class="bracket-team-score">${hScore}${hPenIndicator}</span>
-                    </div>
-                    
-                    <!-- Away Team -->
-                    <div class="bracket-match-team ${aWinnerClass} ${aLoserClass}" data-team-id="${m.away_team_id}">
-                        <div class="bracket-team-info">
-                            <img class="team-flag" src="${aFlag}" alt="${aNameSp}">
-                            <span class="team-name">${aNameSp}</span>
-                        </div>
-                        <span class="bracket-team-score">${aScore}${aPenIndicator}</span>
-                    </div>
+            matchesHtml = `
+                ${finalCardHtml}
+                <div class="bracket-trophy-showcase">
+                    <img class="bracket-trophy-svg" src="assets/trophy.svg" alt="Copa del Mundo">
+                    <span class="bracket-trophy-label">MUNDIAL 2026</span>
                 </div>
+                ${thirdCardHtml}
             `;
-        });
+        } else {
+            r.matches.forEach(m => {
+                matchesHtml += renderMatchCardHtml(m);
+            });
+        }
 
         col.innerHTML = `
             <div class="bracket-round-header">${r.name}</div>

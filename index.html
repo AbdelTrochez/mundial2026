@@ -211,14 +211,22 @@
                     <div class="team-editor">
                         <img id="modal-flag1" class="team-flag" src="" alt="">
                         <span id="modal-name1" class="team-name">México</span>
-                        <input type="number" id="modal-score1" min="0" max="99" placeholder="0">
+                        <div class="score-stepper">
+                            <button type="button" class="btn-stepper" data-action="dec" data-target="modal-score1">-</button>
+                            <input type="number" id="modal-score1" min="0" max="99" placeholder="0" readonly>
+                            <button type="button" class="btn-stepper" data-action="inc" data-target="modal-score1">+</button>
+                        </div>
                     </div>
                     
                     <div class="score-vs">VS</div>
                     
                     <!-- Equipo 2 -->
                     <div class="team-editor">
-                        <input type="number" id="modal-score2" min="0" max="99" placeholder="0">
+                        <div class="score-stepper">
+                            <button type="button" class="btn-stepper" data-action="dec" data-target="modal-score2">-</button>
+                            <input type="number" id="modal-score2" min="0" max="99" placeholder="0" readonly>
+                            <button type="button" class="btn-stepper" data-action="inc" data-target="modal-score2">+</button>
+                        </div>
                         <span id="modal-name2" class="team-name">Sudáfrica</span>
                         <img id="modal-flag2" class="team-flag" src="" alt="">
                     </div>
