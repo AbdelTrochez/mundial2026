@@ -271,3 +271,90 @@ body.dark-theme .bracket-match-team.highlight-team-row {
     display: none !important;
 }
 
+/* Google-style Bracket Navigation Tabs */
+.bracket-nav-container {
+    position: sticky;
+    top: -1px; /* Sticks at the top of the container */
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.25rem 0;
+    margin-bottom: 1.5rem;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.bracket-nav-container::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.bracket-nav-tabs {
+    display: flex;
+    gap: 1rem;
+    padding: 0 1rem;
+    max-width: 100%;
+    min-width: max-content;
+}
+
+.bracket-nav-tab {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.bracket-nav-tab:hover {
+    color: var(--text-primary);
+}
+
+.bracket-nav-tab.active {
+    color: var(--accent-gold);
+    border-bottom-color: var(--accent-gold);
+}
+
+/* Snap Scrolling & Scrolling Behavior */
+.bracket-outer-wrapper {
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+}
+
+.bracket-round {
+    scroll-snap-align: center;
+}
+
+/* Desaturated Loser Styling */
+.bracket-match-team.loser {
+    opacity: 0.45;
+    transition: opacity var(--transition-fast);
+}
+
+.bracket-match-team.loser .team-flag {
+    filter: grayscale(1);
+    opacity: 0.8;
+}
+
+.bracket-match-team.loser .bracket-team-score {
+    color: var(--text-secondary);
+}
+
+/* Penalty indicator (p) */
+.penalty-indicator {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--accent-gold);
+    margin-left: 0.2rem;
+    vertical-align: middle;
+}
+
+

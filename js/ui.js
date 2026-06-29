@@ -794,6 +794,7 @@ function renderBracket(appState) {
     roundData.forEach((r, roundIdx) => {
         const col = document.createElement('div');
         col.className = 'bracket-round';
+        col.id = `bracket-col-${roundIdx}`;
         if (r.isFinal) col.classList.add('final-round-col');
         if (r.isThirdPlace) col.classList.add('third-place-col');
         
@@ -812,16 +813,29 @@ function renderBracket(appState) {
             const hScore = (m.finished === 'TRUE' || m.finished === true) ? m.home_score : '';
             const aScore = (m.finished === 'TRUE' || m.finished === true) ? m.away_score : '';
 
-            // Check winner classes
+            // Check winner and loser classes, plus penalty indicator
             let hWinnerClass = '';
             let aWinnerClass = '';
+            let hLoserClass = '';
+            let aLoserClass = '';
+            let hPenIndicator = '';
+            let aPenIndicator = '';
+
             if (m.finished === 'TRUE' || m.finished === true) {
                 const s1 = parseInt(m.home_score) || 0;
                 const s2 = parseInt(m.away_score) || 0;
                 if (s1 > s2 || (s1 === s2 && m.penalty_winner === '1')) {
                     hWinnerClass = 'winner';
+                    aLoserClass = 'loser';
+                    if (s1 === s2 && m.penalty_winner === '1') {
+                        hPenIndicator = '<span class="penalty-indicator">(p)</span>';
+                    }
                 } else if (s2 > s1 || (s1 === s2 && m.penalty_winner === '2')) {
                     aWinnerClass = 'winner';
+                    hLoserClass = 'loser';
+                    if (s1 === s2 && m.penalty_winner === '2') {
+                        aPenIndicator = '<span class="penalty-indicator">(p)</span>';
+                    }
                 }
             }
 
@@ -848,21 +862,21 @@ function renderBracket(appState) {
                     </div>
                     
                     <!-- Home Team -->
-                    <div class="bracket-match-team ${hWinnerClass}" data-team-id="${m.home_team_id}">
+                    <div class="bracket-match-team ${hWinnerClass} ${hLoserClass}" data-team-id="${m.home_team_id}">
                         <div class="bracket-team-info">
                             <img class="team-flag" src="${hFlag}" alt="${hNameSp}">
                             <span class="team-name">${hNameSp}</span>
                         </div>
-                        <span class="bracket-team-score">${hScore}</span>
+                        <span class="bracket-team-score">${hScore}${hPenIndicator}</span>
                     </div>
                     
                     <!-- Away Team -->
-                    <div class="bracket-match-team ${aWinnerClass}" data-team-id="${m.away_team_id}">
+                    <div class="bracket-match-team ${aWinnerClass} ${aLoserClass}" data-team-id="${m.away_team_id}">
                         <div class="bracket-team-info">
                             <img class="team-flag" src="${aFlag}" alt="${aNameSp}">
                             <span class="team-name">${aNameSp}</span>
                         </div>
-                        <span class="bracket-team-score">${aScore}</span>
+                        <span class="bracket-team-score">${aScore}${aPenIndicator}</span>
                     </div>
                 </div>
             `;
@@ -917,6 +931,75 @@ function renderBracket(appState) {
 
     // 5. Setup Drag to Scroll on Desktop
     setupDragToScroll(document.querySelector('.bracket-outer-wrapper'));
+
+    // 6. Initialize Round Navigation Tabs Bar
+    initBracketNavigation(roundData);
+}
+
+/**
+ * Google-style Navigation for Bracket Rounds
+ * @param {Array} roundData 
+ */
+function initBracketNavigation(roundData) {
+    const tabsContainer = document.getElementById('bracket-nav-tabs');
+    const outerWrapper = document.querySelector('.bracket-outer-wrapper');
+    if (!tabsContainer || !outerWrapper) return;
+
+    tabsContainer.innerHTML = '';
+
+    // Create tabs
+    roundData.forEach((r, idx) => {
+        const colId = `bracket-col-${idx}`;
+        const tab = document.createElement('button');
+        tab.className = 'bracket-nav-tab';
+        if (idx === 0) tab.classList.add('active');
+        tab.innerText = r.name;
+        tab.setAttribute('data-target', colId);
+
+        tab.addEventListener('click', () => {
+            const col = document.getElementById(colId);
+            if (col) {
+                const offsetLeft = col.offsetLeft - outerWrapper.offsetLeft;
+                outerWrapper.scrollTo({
+                    left: offsetLeft,
+                    behavior: 'smooth'
+                });
+            }
+        });
+
+        tabsContainer.appendChild(tab);
+    });
+
+    // Scroll spy: Update active tab when wrapper is scrolled
+    outerWrapper.addEventListener('scroll', () => {
+        const wrapperCenter = outerWrapper.scrollLeft + (outerWrapper.clientWidth / 2);
+        
+        let activeIdx = 0;
+        let minDiff = Infinity;
+
+        roundData.forEach((_, idx) => {
+            const col = document.getElementById(`bracket-col-${idx}`);
+            if (col) {
+                const colCenter = col.offsetLeft + (col.clientWidth / 2);
+                const diff = Math.abs(wrapperCenter - colCenter);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    activeIdx = idx;
+                }
+            }
+        });
+
+        const tabs = tabsContainer.querySelectorAll('.bracket-nav-tab');
+        tabs.forEach((tab, idx) => {
+            if (idx === activeIdx) {
+                tab.classList.add('active');
+                // Scroll tab itself into view if it overflows the navbar
+                tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+    });
 }
 
 /**
