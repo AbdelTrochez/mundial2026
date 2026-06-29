@@ -772,11 +772,16 @@ function renderBracket(appState) {
     const container = document.getElementById('bracket-container');
     container.innerHTML = '';
 
-    // We filter the matches for each round of the knockout stage
-    const r32Matches = appState.matches.filter(m => m.type === 'r32');
-    const r16Matches = appState.matches.filter(m => m.type === 'r16');
-    const qfMatches = appState.matches.filter(m => m.type === 'qf');
-    const sfMatches = appState.matches.filter(m => m.type === 'sf');
+    // Sort knockout matches to form a top-down tree structure where adjacent matches feed the next round
+    const r32Order = ['74', '77', '73', '75', '83', '84', '81', '82', '76', '78', '79', '80', '86', '88', '85', '87'];
+    const r16Order = ['89', '90', '93', '94', '91', '92', '95', '96'];
+    const qfOrder = ['97', '98', '99', '100'];
+    const sfOrder = ['101', '102'];
+
+    const r32Matches = r32Order.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
+    const r16Matches = r16Order.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
+    const qfMatches = qfOrder.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
+    const sfMatches = sfOrder.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
     const finalMatch = appState.matches.find(m => m.type === 'final');
     const thirdMatch = appState.matches.find(m => m.type === 'third');
 
