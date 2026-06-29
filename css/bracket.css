@@ -340,209 +340,31 @@ body:not(.dark-theme) .bracket-match.final-match-card {
 }
 
 /* ==========================================================================
-   Flipped Symmetric Connecting Lines (Thicker & Glowing)
+   HTML5 Canvas Connector Lines Layer
    ========================================================================== */
-/* Left side columns (connect to the right) */
-.bracket-round-left .bracket-match::after {
-    content: '';
+.bracket-canvas {
     position: absolute;
-    right: -29px; /* Reaches half of the gap width (which is gap: 3.5rem -> 56px / 2 = 28px) */
-    width: 30px;
-    border-right: 3px solid rgba(148, 163, 184, 0.16);
-    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Mouse clicks pass through to interactive cards */
+    z-index: 1;
     display: block;
-    box-sizing: border-box;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-body:not(.dark-theme) .bracket-round-left .bracket-match::after {
-    border-right-color: rgba(0, 0, 0, 0.08);
+/* Ensure round columns and matches are positioned on top of the canvas */
+.bracket-round {
+    position: relative;
+    z-index: 2;
 }
 
-/* Left - Top card connects down */
-.bracket-round-left .bracket-match:nth-child(odd)::after {
-    top: 50%;
-    border-top: 3px solid rgba(148, 163, 184, 0.16);
-    border-top-right-radius: 8px;
+.bracket-match {
+    position: relative;
+    z-index: 3;
 }
 
-/* Left - Bottom card connects up */
-.bracket-round-left .bracket-match:nth-child(even)::after {
-    bottom: 50%;
-    border-bottom: 3px solid rgba(148, 163, 184, 0.16);
-    border-bottom-right-radius: 8px;
-}
-
-body:not(.dark-theme) .bracket-round-left .bracket-match:nth-child(odd)::after {
-    border-top-color: rgba(0, 0, 0, 0.08);
-}
-body:not(.dark-theme) .bracket-round-left .bracket-match:nth-child(even)::after {
-    border-bottom-color: rgba(0, 0, 0, 0.08);
-}
-
-/* Right side columns (connect to the left) */
-.bracket-round-right .bracket-match::after {
-    content: '';
-    position: absolute;
-    left: -29px;
-    width: 30px;
-    border-left: 3px solid rgba(148, 163, 184, 0.16);
-    z-index: -1;
-    display: block;
-    box-sizing: border-box;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-body:not(.dark-theme) .bracket-round-right .bracket-match::after {
-    border-left-color: rgba(0, 0, 0, 0.08);
-}
-
-/* Right - Top card connects down */
-.bracket-round-right .bracket-match:nth-child(odd)::after {
-    top: 50%;
-    border-top: 3px solid rgba(148, 163, 184, 0.16);
-    border-top-left-radius: 8px;
-}
-
-/* Right - Bottom card connects up */
-.bracket-round-right .bracket-match:nth-child(even)::after {
-    bottom: 50%;
-    border-bottom: 3px solid rgba(148, 163, 184, 0.16);
-    border-bottom-left-radius: 8px;
-}
-
-body:not(.dark-theme) .bracket-round-right .bracket-match:nth-child(odd)::after {
-    border-top-color: rgba(0, 0, 0, 0.08);
-}
-body:not(.dark-theme) .bracket-round-right .bracket-match:nth-child(even)::after {
-    border-bottom-color: rgba(0, 0, 0, 0.08);
-}
-
-/* Heights of connectors for each column (dependent on spacing) */
-/* Column 1 & 9: Dieciseisavos (8 matches on each side) */
-.bracket-round:nth-child(1) .bracket-match:nth-child(odd)::after,
-.bracket-round:nth-child(1) .bracket-match:nth-child(even)::after,
-.bracket-round:nth-child(9) .bracket-match:nth-child(odd)::after,
-.bracket-round:nth-child(9) .bracket-match:nth-child(even)::after {
-    height: 120px;
-}
-
-/* Column 2 & 8: Octavos (4 matches on each side) */
-.bracket-round:nth-child(2) .bracket-match:nth-child(odd)::after,
-.bracket-round:nth-child(2) .bracket-match:nth-child(even)::after,
-.bracket-round:nth-child(8) .bracket-match:nth-child(odd)::after,
-.bracket-round:nth-child(8) .bracket-match:nth-child(even)::after {
-    height: 240px;
-}
-
-/* Column 3 & 7: Cuartos (2 matches on each side) */
-.bracket-round:nth-child(3) .bracket-match:nth-child(odd)::after,
-.bracket-round:nth-child(3) .bracket-match:nth-child(even)::after,
-.bracket-round:nth-child(7) .bracket-match:nth-child(odd)::after,
-.bracket-round:nth-child(7) .bracket-match:nth-child(even)::after {
-    height: 480px;
-}
-
-/* Column 4 & 6: Semifinales (1 match on each side) - Straight horizontal line */
-.bracket-round-left:nth-child(4) .bracket-match::after {
-    height: 3px;
-    border: none;
-    background: rgba(148, 163, 184, 0.16);
-    top: 50%;
-    margin-top: -1.5px;
-}
-.bracket-round-right:nth-child(6) .bracket-match::after {
-    height: 3px;
-    border: none;
-    background: rgba(148, 163, 184, 0.16);
-    top: 50%;
-    margin-top: -1.5px;
-}
-
-body:not(.dark-theme) .bracket-round-left:nth-child(4) .bracket-match::after,
-body:not(.dark-theme) .bracket-round-right:nth-child(6) .bracket-match::after {
-    background: rgba(0, 0, 0, 0.08);
-}
-
-/* Receiver lines on the left of each card (for left-side columns except first one) */
-.bracket-round-left .bracket-match::before {
-    content: '';
-    position: absolute;
-    left: -29px;
-    top: 50%;
-    width: 30px;
-    height: 3px;
-    background: rgba(148, 163, 184, 0.16);
-    z-index: -1;
-    display: block;
-    transition: background 0.25s ease, box-shadow 0.25s ease;
-}
-.bracket-round-left:nth-child(1) .bracket-match::before {
-    display: none !important;
-}
-
-/* Receiver lines on the right of each card (for right-side columns except last one) */
-.bracket-round-right .bracket-match::before {
-    content: '';
-    position: absolute;
-    right: -29px;
-    top: 50%;
-    width: 30px;
-    height: 3px;
-    background: rgba(148, 163, 184, 0.16);
-    z-index: -1;
-    display: block;
-    transition: background 0.25s ease, box-shadow 0.25s ease;
-}
-.bracket-round-right:nth-child(9) .bracket-match::before {
-    display: none !important;
-}
-
-body:not(.dark-theme) .bracket-round-left .bracket-match::before,
-body:not(.dark-theme) .bracket-round-right .bracket-match::before {
-    background: rgba(0, 0, 0, 0.08);
-}
-
-/* Center Column (Final & Tercer Lugar) receiver lines */
-.bracket-round-center .final-match-card::before {
-    content: '';
-    position: absolute;
-    left: -29px;
-    top: 50%;
-    width: 30px;
-    height: 3px;
-    background: rgba(148, 163, 184, 0.16);
-    z-index: -1;
-    display: block;
-    transition: background 0.25s ease, box-shadow 0.25s ease;
-}
-.bracket-round-center .final-match-card::after {
-    content: '';
-    position: absolute;
-    right: -29px;
-    top: 50%;
-    width: 30px;
-    height: 3px;
-    background: rgba(148, 163, 184, 0.16);
-    z-index: -1;
-    display: block;
-    transition: background 0.25s ease, box-shadow 0.25s ease;
-}
-
-body:not(.dark-theme) .bracket-round-center .final-match-card::before,
-body:not(.dark-theme) .bracket-round-center .final-match-card::after {
-    background: rgba(0, 0, 0, 0.08);
-}
-
-/* Third Place Match Card has no connectors */
-.bracket-round-center .third-place-card::before,
-.bracket-round-center .third-place-card::after {
-    display: none !important;
-}
-
-/* ==========================================================================
-   Active Hover Path Highlighting (Neon Gold Dust Glow)
-   ========================================================================== */
+/* Highlighting cards and teams on path hover */
 .bracket-match.highlight-path {
     border-color: var(--accent-gold) !important;
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.35) !important;
@@ -561,24 +383,6 @@ body:not(.dark-theme) .bracket-match.highlight-path {
 
 body.dark-theme .bracket-match-team.highlight-team-row {
     background: rgba(245, 158, 11, 0.22) !important;
-}
-
-/* Glowing gold path lines */
-.bracket-match.highlight-path::after {
-    border-color: var(--accent-gold) !important;
-    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.8));
-}
-
-.bracket-round-left:nth-child(4) .bracket-match.highlight-path::after,
-.bracket-round-right:nth-child(6) .bracket-match.highlight-path::after,
-.bracket-round-center .final-match-card.highlight-path::after {
-    background: var(--accent-gold) !important;
-    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.8));
-}
-
-.bracket-match.highlight-path::before {
-    background: var(--accent-gold) !important;
-    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.8));
 }
 
 /* ==========================================================================

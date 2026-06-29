@@ -5,6 +5,7 @@ import { convertToHondurasTime, formatHondurasDate } from './engine.js';
 
 let activeTabId = 'tab-groups';
 let currentEditingMatch = null;
+let globalAppState = null;
 
 /**
  * Parses scorers string from API database format.
@@ -82,6 +83,179 @@ function normalizePlayerName(name) {
         }
     }
     return clean;
+}
+
+/**
+ * Draw Connecting Bracket Lines on HTML5 Canvas
+ * Matches DOM elements dynamically for a pixel-perfect fit.
+ * @param {Object} appState 
+ */
+export function drawBracketLines(appState) {
+    const canvas = document.getElementById('bracket-canvas');
+    if (!canvas) return;
+
+    const wrapper = document.getElementById('bracket-container');
+    if (!wrapper) return;
+
+    // Set canvas buffer sizes to match the scroll container exactly
+    canvas.width = wrapper.scrollWidth;
+    canvas.height = wrapper.scrollHeight;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const isDark = document.body.classList.contains('dark-theme');
+    const defaultColor = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)';
+    const activeColor = 'rgba(245, 158, 11, 0.9)'; // var(--accent-gold)
+
+    const parentRect = wrapper.getBoundingClientRect();
+
+    // Helper to get relative coordinates for match card input/output ports
+    const getCardPoint = (matchId, sideEdge) => {
+        const card = wrapper.querySelector(`.bracket-match[data-match-id="${matchId}"]`);
+        if (!card) return null;
+        const rect = card.getBoundingClientRect();
+        const x = (sideEdge === 'left') ? (rect.left - parentRect.left) : (rect.right - parentRect.left);
+        const y = rect.top - parentRect.top + rect.height / 2;
+        return { x, y, card };
+    };
+
+    // Helper to check if a specific progression path is active for the hovered team
+    const isPathActive = (matchIdA, matchIdC) => {
+        if (!appState.hoveredTeamId) return false;
+        const cardA = wrapper.querySelector(`.bracket-match[data-match-id="${matchIdA}"]`);
+        const cardC = wrapper.querySelector(`.bracket-match[data-match-id="${matchIdC}"]`);
+        if (!cardA || !cardC) return false;
+        
+        const tId = String(appState.hoveredTeamId);
+        const hasA = cardA.querySelector(`.bracket-match-team[data-team-id="${tId}"]`);
+        const hasC = cardC.querySelector(`.bracket-match-team[data-team-id="${tId}"]`);
+        return !!(hasA && hasC);
+    };
+
+    // Draw curved fork connector (U-shape)
+    const drawConnector = (pA, pC, side, isActive) => {
+        ctx.beginPath();
+        ctx.lineWidth = isActive ? 4 : 3;
+        ctx.strokeStyle = isActive ? activeColor : defaultColor;
+
+        if (isActive) {
+            ctx.shadowColor = '#f59e0b';
+            ctx.shadowBlur = 10;
+        } else {
+            ctx.shadowBlur = 0;
+        }
+
+        const xA = pA.x;
+        const yA = pA.y;
+        const xC = pC.x;
+        const yC = pC.y;
+
+        if (side === 'left') {
+            const xMid = xA + (xC - xA) / 2;
+            ctx.moveTo(xA, yA);
+            ctx.lineTo(xMid - 6, yA);
+            ctx.quadraticCurveTo(xMid, yA, xMid, yA + (yC > yA ? 6 : -6));
+            ctx.lineTo(xMid, yC + (yC > yA ? -6 : 6));
+            ctx.quadraticCurveTo(xMid, yC, xMid + 6, yC);
+            ctx.lineTo(xC, yC);
+        } else if (side === 'right') {
+            const xMid = xA - (xA - xC) / 2;
+            ctx.moveTo(xA, yA);
+            ctx.lineTo(xMid + 6, yA);
+            ctx.quadraticCurveTo(xMid, yA, xMid, yA + (yC > yA ? 6 : -6));
+            ctx.lineTo(xMid, yC + (yC > yA ? -6 : 6));
+            ctx.quadraticCurveTo(xMid, yC, xMid - 6, yC);
+            ctx.lineTo(xC, yC);
+        }
+
+        ctx.stroke();
+    };
+
+    // Draw straight line connector
+    const drawStraightLine = (pA, pC, isActive) => {
+        ctx.beginPath();
+        ctx.lineWidth = isActive ? 4 : 3;
+        ctx.strokeStyle = isActive ? activeColor : defaultColor;
+
+        if (isActive) {
+            ctx.shadowColor = '#f59e0b';
+            ctx.shadowBlur = 10;
+        } else {
+            ctx.shadowBlur = 0;
+        }
+
+        ctx.moveTo(pA.x, pA.y);
+        ctx.lineTo(pC.x, pC.y);
+        ctx.stroke();
+    };
+
+    // Match progression mappings for bracket path rendering
+    const leftProgressions = [
+        { src: 74, dest: 89 }, { src: 77, dest: 89 },
+        { src: 73, dest: 90 }, { src: 75, dest: 90 },
+        { src: 83, dest: 93 }, { src: 84, dest: 93 },
+        { src: 81, dest: 94 }, { src: 82, dest: 94 },
+        { src: 89, dest: 97 }, { src: 90, dest: 97 },
+        { src: 93, dest: 98 }, { src: 94, dest: 98 },
+        { src: 97, dest: 101 }, { src: 98, dest: 101 }
+    ];
+
+    const rightProgressions = [
+        { src: 76, dest: 91 }, { src: 78, dest: 91 },
+        { src: 79, dest: 92 }, { src: 80, dest: 92 },
+        { src: 86, dest: 95 }, { src: 88, dest: 95 },
+        { src: 85, dest: 96 }, { src: 87, dest: 96 },
+        { src: 91, dest: 99 }, { src: 92, dest: 99 },
+        { src: 95, dest: 100 }, { src: 96, dest: 100 },
+        { src: 99, dest: 102 }, { src: 100, dest: 102 }
+    ];
+
+    // Render left side paths
+    leftProgressions.forEach(p => {
+        const pA = getCardPoint(p.src, 'right');
+        const pC = getCardPoint(p.dest, 'left');
+        if (pA && pC) {
+            const active = isPathActive(p.src, p.dest);
+            drawConnector(pA, pC, 'left', active);
+        }
+    });
+
+    // Render right side paths
+    rightProgressions.forEach(p => {
+        const pA = getCardPoint(p.src, 'left');
+        const pC = getCardPoint(p.dest, 'right');
+        if (pA && pC) {
+            const active = isPathActive(p.src, p.dest);
+            drawConnector(pA, pC, 'right', active);
+        }
+    });
+
+    // Render Semifinals to Final
+    const pSF_L = getCardPoint(101, 'right');
+    const pSF_R = getCardPoint(102, 'left');
+    const pFinal_L = getCardPoint(104, 'left');
+    const pFinal_R = getCardPoint(104, 'right');
+
+    if (pSF_L && pFinal_L) {
+        const active = isPathActive(101, 104);
+        drawStraightLine(pSF_L, pFinal_L, active);
+    }
+    if (pSF_R && pFinal_R) {
+        const active = isPathActive(102, 104);
+        drawStraightLine(pSF_R, pFinal_R, active);
+    }
+
+    ctx.shadowBlur = 0;
+}
+
+// Auto-redraw canvas on window resize events
+if (typeof window !== 'undefined') {
+    window.addEventListener('resize', () => {
+        if (activeTabId === 'tab-bracket' && globalAppState) {
+            drawBracketLines(globalAppState);
+        }
+    });
 }
 
 // Map of official assists for played matches
@@ -242,6 +416,7 @@ function getShortDayName(date) {
  * @param {Function} onStateChange - Callback function when state changes (saves/recalculates)
  */
 export function initUI(appState, onStateChange) {
+    globalAppState = appState;
     // 1. Tab Switching
     const tabButtons = document.querySelectorAll('.nav-tab');
     tabButtons.forEach(btn => {
@@ -499,6 +674,7 @@ export function renderActiveTab(appState) {
         renderMatches(appState);
     } else if (activeTabId === 'tab-bracket') {
         renderBracket(appState);
+        setTimeout(() => drawBracketLines(appState), 100);
     } else if (activeTabId === 'tab-stats') {
         renderStats(appState);
     }
@@ -970,21 +1146,25 @@ function renderBracket(appState) {
         if (!teamId || teamId === '0') return;
 
         row.addEventListener('mouseenter', () => {
+            appState.hoveredTeamId = teamId;
             const matchesOfTeam = container.querySelectorAll(`.bracket-match-team[data-team-id="${teamId}"]`);
             matchesOfTeam.forEach(r => {
                 r.classList.add('highlight-team-row');
                 const parentMatch = r.closest('.bracket-match');
                 if (parentMatch) parentMatch.classList.add('highlight-path');
             });
+            drawBracketLines(appState);
         });
 
         row.addEventListener('mouseleave', () => {
+            appState.hoveredTeamId = null;
             const matchesOfTeam = container.querySelectorAll(`.bracket-match-team[data-team-id="${teamId}"]`);
             matchesOfTeam.forEach(r => {
                 r.classList.remove('highlight-team-row');
                 const parentMatch = r.closest('.bracket-match');
                 if (parentMatch) parentMatch.classList.remove('highlight-path');
             });
+            drawBracketLines(appState);
         });
     });
 
@@ -993,6 +1173,9 @@ function renderBracket(appState) {
 
     // 6. Initialize Round Navigation Tabs Bar
     initBracketNavigation(roundData);
+
+    // 7. Draw Canvas Connector Lines
+    setTimeout(() => drawBracketLines(appState), 100);
 }
 
 /**
