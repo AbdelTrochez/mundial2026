@@ -772,27 +772,30 @@ function renderBracket(appState) {
     const container = document.getElementById('bracket-container');
     container.innerHTML = '';
 
-    // Sort knockout matches to form a top-down tree structure where adjacent matches feed the next round
-    const r32Order = ['74', '77', '73', '75', '83', '84', '81', '82', '76', '78', '79', '80', '86', '88', '85', '87'];
-    const r16Order = ['89', '90', '93', '94', '91', '92', '95', '96'];
-    const qfOrder = ['97', '98', '99', '100'];
-    const sfOrder = ['101', '102'];
+    // Split matches into Left and Right brackets, converging in the Center (Final / Tercer Lugar)
+    const leftR32 = r32Matches.slice(0, 8);
+    const rightR32 = r32Matches.slice(8, 16);
 
-    const r32Matches = r32Order.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
-    const r16Matches = r16Order.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
-    const qfMatches = qfOrder.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
-    const sfMatches = sfOrder.map(id => appState.matches.find(m => String(m.id) === id)).filter(Boolean);
-    const finalMatch = appState.matches.find(m => m.type === 'final');
-    const thirdMatch = appState.matches.find(m => m.type === 'third');
+    const leftR16 = r16Matches.slice(0, 4);
+    const rightR16 = r16Matches.slice(4, 8);
 
-    // Create rounds structure
+    const leftQF = qfMatches.slice(0, 2);
+    const rightQF = qfMatches.slice(2, 4);
+
+    const leftSF = sfMatches.slice(0, 1);
+    const rightSF = sfMatches.slice(1, 2);
+
+    // Create 9 rounds structure (Left -> Center <- Right)
     const roundData = [
-        { name: 'Dieciseisavos (R32)', matches: r32Matches },
-        { name: 'Octavos de Final', matches: r16Matches },
-        { name: 'Cuartos de Final', matches: qfMatches },
-        { name: 'Semifinales', matches: sfMatches },
-        { name: 'Final', matches: finalMatch ? [finalMatch] : [], isFinal: true },
-        { name: 'Tercer Lugar', matches: thirdMatch ? [thirdMatch] : [], isThirdPlace: true }
+        { name: '16VOS', matches: leftR32, side: 'left', id: 'l-r32' },
+        { name: '8VOS', matches: leftR16, side: 'left', id: 'l-r16' },
+        { name: '4TOS', matches: leftQF, side: 'left', id: 'l-qf' },
+        { name: 'SEMIS', matches: leftSF, side: 'left', id: 'l-sf' },
+        { name: 'FINAL', matches: [finalMatch, thirdMatch].filter(Boolean), side: 'center', id: 'center-final', isCenter: true },
+        { name: 'SEMIS', matches: rightSF, side: 'right', id: 'r-sf' },
+        { name: '4TOS', matches: rightQF, side: 'right', id: 'r-qf' },
+        { name: '8VOS', matches: rightR16, side: 'right', id: 'r-r16' },
+        { name: '16VOS', matches: rightR32, side: 'right', id: 'r-r32' }
     ];
 
     // Append columns for rounds
@@ -800,8 +803,11 @@ function renderBracket(appState) {
         const col = document.createElement('div');
         col.className = 'bracket-round';
         col.id = `bracket-col-${roundIdx}`;
-        if (r.isFinal) col.classList.add('final-round-col');
-        if (r.isThirdPlace) col.classList.add('third-place-col');
+        
+        // Add side-specific classes for connections flipping
+        if (r.side === 'left') col.classList.add('bracket-round-left');
+        if (r.side === 'right') col.classList.add('bracket-round-right');
+        if (r.side === 'center') col.classList.add('bracket-round-center');
         
         let matchesHtml = '';
 
@@ -855,12 +861,16 @@ function renderBracket(appState) {
 
             const simulatedClass = m.isSimulated ? 'simulated-match' : '';
             const editableClass = appState.mode === 'simulator' ? 'editable-match' : '';
-            const finalClass = r.isFinal ? 'final-match-card' : '';
-            const finalBadge = r.isFinal ? '<div class="final-badge">🏆 GRAN FINAL</div>' : '';
+            
+            const isFinalMatch = m.type === 'final';
+            const isThirdMatch = m.type === 'third';
+            
+            const matchCardClass = isFinalMatch ? 'final-match-card' : (isThirdMatch ? 'third-place-card' : '');
+            const cardBadge = isFinalMatch ? '<div class="final-badge">🏆 GRAN FINAL</div>' : (isThirdMatch ? '<div class="third-place-badge">🥉 TERCER LUGAR</div>' : '');
 
             matchesHtml += `
-                <div class="bracket-match ${simulatedClass} ${editableClass} ${finalClass}" data-match-id="${m.id}">
-                    ${finalBadge}
+                <div class="bracket-match ${simulatedClass} ${editableClass} ${matchCardClass}" data-match-id="${m.id}">
+                    ${cardBadge}
                     <div class="bracket-match-meta">
                         <span>P. ${m.id}</span>
                         <span>${dateShort}</span>

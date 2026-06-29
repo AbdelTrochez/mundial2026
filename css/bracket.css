@@ -175,8 +175,8 @@ body.dark-theme .bracket-match-team.winner {
     text-align: right;
 }
 
-/* Base style for connection brace (connecting to the right) */
-.bracket-match::after {
+/* Base style for connection brace (connecting to the right) - LEFT BRACKET */
+.bracket-round-left .bracket-match::after {
     content: '';
     position: absolute;
     right: -24px;
@@ -187,61 +187,89 @@ body.dark-theme .bracket-match-team.winner {
     box-sizing: border-box;
 }
 
-/* Top card of a pair connects down */
-.bracket-round .bracket-match:nth-child(odd)::after {
+/* Top card of a pair connects down - LEFT */
+.bracket-round-left .bracket-match:nth-child(odd)::after {
     top: 50%;
     border-top: 2px solid var(--border-color);
     border-top-right-radius: 6px;
 }
 
-/* Bottom card of a pair connects up */
-.bracket-round .bracket-match:nth-child(even)::after {
+/* Bottom card of a pair connects up - LEFT */
+.bracket-round-left .bracket-match:nth-child(even)::after {
     bottom: 50%;
     border-bottom: 2px solid var(--border-color);
     border-bottom-right-radius: 6px;
 }
 
+/* Base style for connection brace (connecting to the left) - RIGHT BRACKET */
+.bracket-round-right .bracket-match::after {
+    content: '';
+    position: absolute;
+    left: -24px;
+    width: 24px;
+    border-left: 2px solid var(--border-color);
+    z-index: -1;
+    display: block;
+    box-sizing: border-box;
+}
+
+/* Top card of a pair connects down - RIGHT */
+.bracket-round-right .bracket-match:nth-child(odd)::after {
+    top: 50%;
+    border-top: 2px solid var(--border-color);
+    border-top-left-radius: 6px;
+}
+
+/* Bottom card of a pair connects up - RIGHT */
+.bracket-round-right .bracket-match:nth-child(even)::after {
+    bottom: 50%;
+    border-bottom: 2px solid var(--border-color);
+    border-bottom-left-radius: 6px;
+}
+
 /* Heights for each round (half of the center-to-center distance) */
-/* Round 0: Dieciseisavos (R32) - 16 matches, 8 pairs */
-.bracket-round:nth-child(1) .bracket-match:nth-child(odd)::after {
-    height: 60px;
-}
-.bracket-round:nth-child(1) .bracket-match:nth-child(even)::after {
-    height: 60px;
-}
-
-/* Round 1: Octavos - 8 matches, 4 pairs */
-.bracket-round:nth-child(2) .bracket-match:nth-child(odd)::after {
-    height: 120px;
-}
-.bracket-round:nth-child(2) .bracket-match:nth-child(even)::after {
+/* Column 1 & 9: Dieciseisavos (8 matches on each side) */
+.bracket-round:nth-child(1) .bracket-match:nth-child(odd)::after,
+.bracket-round:nth-child(1) .bracket-match:nth-child(even)::after,
+.bracket-round:nth-child(9) .bracket-match:nth-child(odd)::after,
+.bracket-round:nth-child(9) .bracket-match:nth-child(even)::after {
     height: 120px;
 }
 
-/* Round 2: Cuartos - 4 matches, 2 pairs */
-.bracket-round:nth-child(3) .bracket-match:nth-child(odd)::after {
+/* Column 2 & 8: Octavos (4 matches on each side) */
+.bracket-round:nth-child(2) .bracket-match:nth-child(odd)::after,
+.bracket-round:nth-child(2) .bracket-match:nth-child(even)::after,
+.bracket-round:nth-child(8) .bracket-match:nth-child(odd)::after,
+.bracket-round:nth-child(8) .bracket-match:nth-child(even)::after {
     height: 240px;
 }
-.bracket-round:nth-child(3) .bracket-match:nth-child(even)::after {
-    height: 240px;
-}
 
-/* Round 3: Semifinales - 2 matches, 1 pair */
-.bracket-round:nth-child(4) .bracket-match:nth-child(odd)::after {
-    height: 480px;
-}
-.bracket-round:nth-child(4) .bracket-match:nth-child(even)::after {
+/* Column 3 & 7: Cuartos (2 matches on each side) */
+.bracket-round:nth-child(3) .bracket-match:nth-child(odd)::after,
+.bracket-round:nth-child(3) .bracket-match:nth-child(even)::after,
+.bracket-round:nth-child(7) .bracket-match:nth-child(odd)::after,
+.bracket-round:nth-child(7) .bracket-match:nth-child(even)::after {
     height: 480px;
 }
 
-/* Round 4 (Final) and Round 5 (Tercer Lugar) have no outgoing connectors */
-.bracket-round:nth-child(5) .bracket-match::after,
-.bracket-round:nth-child(6) .bracket-match::after {
-    display: none !important;
+/* Column 4 & 6: Semifinales (1 match on each side) - Straight horizontal line */
+.bracket-round-left:nth-child(4) .bracket-match::after {
+    height: 2px;
+    border: none;
+    background: var(--border-color);
+    top: 50%;
+    margin-top: -1px;
+}
+.bracket-round-right:nth-child(6) .bracket-match::after {
+    height: 2px;
+    border: none;
+    background: var(--border-color);
+    top: 50%;
+    margin-top: -1px;
 }
 
-/* Receiver lines on the left of each card (all rounds except the first one) */
-.bracket-match::before {
+/* Receiver lines on the left of each card (for left-side columns except the first one) */
+.bracket-round-left .bracket-match::before {
     content: '';
     position: absolute;
     left: -24px;
@@ -252,18 +280,65 @@ body.dark-theme .bracket-match-team.winner {
     z-index: -1;
     display: block;
 }
-
-/* R32 (first round) has no left receiver lines */
-.bracket-round:nth-child(1) .bracket-match::before {
+.bracket-round-left:nth-child(1) .bracket-match::before {
     display: none !important;
 }
 
-/* Highlighted paths should also color the connector lines! */
+/* Receiver lines on the right of each card (for right-side columns except the last one) */
+.bracket-round-right .bracket-match::before {
+    content: '';
+    position: absolute;
+    right: -24px;
+    top: 50%;
+    width: 24px;
+    height: 2px;
+    background: var(--border-color);
+    z-index: -1;
+    display: block;
+}
+.bracket-round-right:nth-child(9) .bracket-match::before {
+    display: none !important;
+}
+
+/* Center Column (Final & Tercer Lugar) receiver lines */
+.bracket-round-center .final-match-card::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 50%;
+    width: 24px;
+    height: 2px;
+    background: var(--border-color);
+    z-index: -1;
+    display: block;
+}
+.bracket-round-center .final-match-card::after {
+    content: '';
+    position: absolute;
+    right: -24px;
+    top: 50%;
+    width: 24px;
+    height: 2px;
+    background: var(--border-color);
+    z-index: -1;
+    display: block;
+}
+
+/* Third Place Match Card has no connectors */
+.bracket-round-center .third-place-card::before,
+.bracket-round-center .third-place-card::after {
+    display: none !important;
+}
+
+/* Highlighted paths coloring */
 .bracket-match.highlight-path::after {
     border-color: var(--accent-gold) !important;
 }
-
-/* The left receiver line should highlight if the match itself is in the path! */
+.bracket-round-left:nth-child(4) .bracket-match.highlight-path::after,
+.bracket-round-right:nth-child(6) .bracket-match.highlight-path::after,
+.bracket-round-center .final-match-card.highlight-path::after {
+    background-color: var(--accent-gold) !important;
+}
 .bracket-match.highlight-path::before {
     background-color: var(--accent-gold) !important;
 }
