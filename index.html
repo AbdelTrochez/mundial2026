@@ -19,6 +19,7 @@
     <!-- CSS Modulares -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/bracket.css">
 </head>
 <body class="light-theme">
     
@@ -74,6 +75,9 @@
             </button>
             <button class="nav-tab" data-tab="tab-matches">
                 <span class="tab-icon">📅</span> Calendario
+            </button>
+            <button class="nav-tab" data-tab="tab-bracket">
+                <span class="tab-icon">🏆</span> Fase Final
             </button>
             <button class="nav-tab" data-tab="tab-stats">
                 <span class="tab-icon">📊</span> Estadísticas
@@ -140,6 +144,24 @@
 
             <div class="matches-list" id="matches-container">
                 <!-- Se poblará dinámicamente con las tarjetas de los partidos -->
+            </div>
+        </section>
+
+        <!-- Vista 3: Bracket / Eliminatorias -->
+        <section id="tab-bracket" class="tab-pane">
+            <div class="bracket-instructions">
+                <p>💡 Desliza horizontalmente para ver las llaves completas, desde la Ronda de 32 hasta la Final.</p>
+            </div>
+            
+            <div class="bracket-nav-container">
+                <div class="bracket-nav-tabs" id="bracket-nav-tabs"></div>
+            </div>
+            
+            <div class="bracket-outer-wrapper">
+                <div class="bracket-wrapper" id="bracket-container">
+                    <canvas id="bracket-canvas" class="bracket-canvas"></canvas>
+                    <!-- Se poblará dinámicamente con las rondas del bracket -->
+                </div>
             </div>
         </section>
 
