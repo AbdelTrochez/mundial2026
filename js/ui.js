@@ -970,18 +970,22 @@ function renderBracket(appState) {
     const container = document.getElementById('bracket-container');
     container.innerHTML = '';
 
-    // Split matches into Left and Right brackets, converging in the Center (Final / Tercer Lugar)
-    const leftR32 = r32Matches.slice(0, 8);
-    const rightR32 = r32Matches.slice(8, 16);
+    const findMatch = (id) => appState.matches.find(m => String(m.id) === String(id));
 
-    const leftR16 = r16Matches.slice(0, 4);
-    const rightR16 = r16Matches.slice(4, 8);
+    // Left Bracket (feeding Semifinal 101)
+    const leftR32 = [74, 77, 73, 75, 83, 84, 81, 82].map(findMatch).filter(Boolean);
+    const leftR16 = [89, 90, 93, 94].map(findMatch).filter(Boolean);
+    const leftQF = [97, 98].map(findMatch).filter(Boolean);
+    const leftSF = [101].map(findMatch).filter(Boolean);
 
-    const leftQF = qfMatches.slice(0, 2);
-    const rightQF = qfMatches.slice(2, 4);
+    // Right Bracket (feeding Semifinal 102)
+    const rightR32 = [76, 78, 79, 80, 86, 88, 85, 87].map(findMatch).filter(Boolean);
+    const rightR16 = [91, 92, 95, 96].map(findMatch).filter(Boolean);
+    const rightQF = [99, 100].map(findMatch).filter(Boolean);
+    const rightSF = [102].map(findMatch).filter(Boolean);
 
-    const leftSF = sfMatches.slice(0, 1);
-    const rightSF = sfMatches.slice(1, 2);
+    const finalMatch = findMatch(104);
+    const thirdMatch = findMatch(103);
 
     // Create 9 rounds structure (Left -> Center <- Right)
     const roundData = [
