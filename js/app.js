@@ -155,7 +155,9 @@ class AppState {
                 if (current) {
                     if (current.home_score !== lm.home_score || 
                         current.away_score !== lm.away_score || 
-                        current.finished !== lm.finished) {
+                        current.finished !== lm.finished ||
+                        current.home_penalty_score !== lm.home_penalty_score ||
+                        current.away_penalty_score !== lm.away_penalty_score) {
                         
                         current.home_score = lm.home_score;
                         current.away_score = lm.away_score;
@@ -163,6 +165,15 @@ class AppState {
                         current.home_scorers = lm.home_scorers;
                         current.away_scorers = lm.away_scorers;
                         current.time_elapsed = lm.time_elapsed;
+                        
+                        // Sync penalty details
+                        current.home_penalty_score = lm.home_penalty_score;
+                        current.away_penalty_score = lm.away_penalty_score;
+                        current.home_penalty_misses = lm.home_penalty_misses;
+                        current.away_penalty_misses = lm.away_penalty_misses;
+                        current.home_penalty_scorers = lm.home_penalty_scorers;
+                        current.away_penalty_scorers = lm.away_penalty_scorers;
+                        
                         changed = true;
                     }
                 }

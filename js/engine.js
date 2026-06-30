@@ -389,9 +389,19 @@ export function propagateKnockout(matches, teams, standings) {
         const aScore = parseInt(match.away_score) || 0;
         if (hScore > aScore) return match.home_team_id;
         if (aScore > hScore) return match.away_team_id;
-        // If tied, read penalty winner
+        
+        // If tied, check penalty shootout scores first (if present and not null/NaN)
+        const hPen = parseInt(match.home_penalty_score);
+        const aPen = parseInt(match.away_penalty_score);
+        if (!isNaN(hPen) && !isNaN(aPen)) {
+            if (hPen > aPen) return match.home_team_id;
+            if (aPen > hPen) return match.away_team_id;
+        }
+
+        // Fallback to reading penalty_winner field
         if (match.penalty_winner === '1') return match.home_team_id;
         if (match.penalty_winner === '2') return match.away_team_id;
+        
         return "0";
     };
 

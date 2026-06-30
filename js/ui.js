@@ -597,6 +597,13 @@ export function initUI(appState, onStateChange) {
         currentEditingMatch.finished = 'TRUE';
         currentEditingMatch.penalty_winner = penaltyWinner;
         currentEditingMatch.isSimulated = true;
+        if (penaltyWinner) {
+            currentEditingMatch.home_penalty_score = penaltyWinner === '1' ? '5' : '4';
+            currentEditingMatch.away_penalty_score = penaltyWinner === '2' ? '5' : '4';
+        } else {
+            currentEditingMatch.home_penalty_score = null;
+            currentEditingMatch.away_penalty_score = null;
+        }
 
         onStateChange(); // Notify engine to update standings/bracket
         closeModal();
@@ -1025,17 +1032,50 @@ function renderBracket(appState) {
         if (m.finished === 'TRUE' || m.finished === true) {
             const s1 = parseInt(m.home_score) || 0;
             const s2 = parseInt(m.away_score) || 0;
-            if (s1 > s2 || (s1 === s2 && m.penalty_winner === '1')) {
+            
+            let winnerId = "0";
+            if (s1 > s2) {
+                winnerId = "1";
+            } else if (s2 > s1) {
+                winnerId = "2";
+            } else {
+                const hPen = parseInt(m.home_penalty_score);
+                const aPen = parseInt(m.away_penalty_score);
+                if (!isNaN(hPen) && !isNaN(aPen)) {
+                    if (hPen > aPen) winnerId = "1";
+                    else if (aPen > hPen) winnerId = "2";
+                }
+                if (winnerId === "0") {
+                    if (m.penalty_winner === '1') winnerId = "1";
+                    else if (m.penalty_winner === '2') winnerId = "2";
+                }
+            }
+
+            if (winnerId === "1") {
                 hWinnerClass = 'winner';
                 aLoserClass = 'loser';
-                if (s1 === s2 && m.penalty_winner === '1') {
-                    hPenIndicator = '<span class="penalty-indicator">(p)</span>';
+                if (s1 === s2) {
+                    const hPen = parseInt(m.home_penalty_score);
+                    const aPen = parseInt(m.away_penalty_score);
+                    if (!isNaN(hPen) && !isNaN(aPen)) {
+                        hPenIndicator = ` <span class="penalty-indicator">(${hPen})</span>`;
+                        aPenIndicator = ` <span class="penalty-indicator">(${aPen})</span>`;
+                    } else {
+                        hPenIndicator = ' <span class="penalty-indicator">(p)</span>';
+                    }
                 }
-            } else if (s2 > s1 || (s1 === s2 && m.penalty_winner === '2')) {
+            } else if (winnerId === "2") {
                 aWinnerClass = 'winner';
                 hLoserClass = 'loser';
-                if (s1 === s2 && m.penalty_winner === '2') {
-                    aPenIndicator = '<span class="penalty-indicator">(p)</span>';
+                if (s1 === s2) {
+                    const hPen = parseInt(m.home_penalty_score);
+                    const aPen = parseInt(m.away_penalty_score);
+                    if (!isNaN(hPen) && !isNaN(aPen)) {
+                        hPenIndicator = ` <span class="penalty-indicator">(${hPen})</span>`;
+                        aPenIndicator = ` <span class="penalty-indicator">(${aPen})</span>`;
+                    } else {
+                        aPenIndicator = ' <span class="penalty-indicator">(p)</span>';
+                    }
                 }
             }
         }
