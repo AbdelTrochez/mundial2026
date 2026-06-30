@@ -213,27 +213,102 @@ export function getBestThirdPlaces(standings) {
  */
 function allocateThirdPlaces(slots, bestThirds) {
     const allocation = {};
-    const assignedTeamIds = new Set();
 
-    slots.forEach(slotLabel => {
-        // Extract groups from slotLabel, e.g. "3rd Group A/B/C/D/F" -> ["A", "B", "C", "D", "F"]
+    // 1. Try to use the official FIFA Annex C combinations table
+    const allocationHelper = globalThis.FB_THIRD_PLACE_ALLOCATION;
+    if (allocationHelper) {
+        const groups = bestThirds.map(t => t.group);
+        const assignment = allocationHelper.resolveThirdPlaceAssignment(groups);
+
+        if (assignment) {
+            const slotToPositionMap = {
+                '3rd Group A/B/C/D/F': 2,
+                '3rd Group C/D/F/G/H': 5,
+                '3rd Group C/E/F/H/I': 7,
+                '3rd Group E/H/I/J/K': 8,
+                '3rd Group B/E/F/I/J': 9,
+                '3rd Group A/E/H/I/J': 10,
+                '3rd Group E/F/G/I/J': 13,
+                '3rd Group D/E/I/J/L': 15
+            };
+
+            slots.forEach(slotLabel => {
+                const pos = slotToPositionMap[slotLabel];
+                const groupLetter = assignment[pos];
+                if (groupLetter) {
+                    const matchedTeam = bestThirds.find(t => t.group === groupLetter);
+                    if (matchedTeam) {
+                        allocation[slotLabel] = matchedTeam;
+                    }
+                }
+            });
+
+            // Verify if all slots are allocated
+            const allocatedCount = Object.keys(allocation).length;
+            if (allocatedCount === slots.length) {
+                return allocation;
+            }
+        }
+    }
+
+    // 2. Backtracking perfect matching solver (fallback / simulator custom paths)
+    const assignedIds = new Set();
+
+    function solve(slotIndex) {
+        if (slotIndex === slots.length) {
+            return true;
+        }
+
+        const slotLabel = slots[slotIndex];
         const match = slotLabel.match(/3rd Group (.*)/);
-        if (!match) return;
-        
+        if (!match) return solve(slotIndex + 1);
+
         const allowedGroups = match[1].split('/');
 
-        // Find the first unassigned team in bestThirds that belongs to an allowed group
+        // Find all candidates for this slot
+        const candidates = bestThirds.filter(t => 
+            allowedGroups.includes(t.group) && !assignedIds.has(t.id)
+        );
+
+        for (const candidate of candidates) {
+            allocation[slotLabel] = candidate;
+            assignedIds.add(candidate.id);
+
+            if (solve(slotIndex + 1)) {
+                return true;
+            }
+
+            // Backtrack
+            delete allocation[slotLabel];
+            assignedIds.delete(candidate.id);
+        }
+
+        return false;
+    }
+
+    if (solve(0)) {
+        return allocation;
+    }
+
+    // 3. Last resort: greedy matching
+    const assignedGreedyIds = new Set();
+    const greedyAllocation = {};
+    slots.forEach(slotLabel => {
+        const match = slotLabel.match(/3rd Group (.*)/);
+        if (!match) return;
+
+        const allowedGroups = match[1].split('/');
         const matchedTeam = bestThirds.find(t => 
-            allowedGroups.includes(t.group) && !assignedTeamIds.has(t.id)
+            allowedGroups.includes(t.group) && !assignedGreedyIds.has(t.id)
         );
 
         if (matchedTeam) {
-            allocation[slotLabel] = matchedTeam;
-            assignedTeamIds.add(matchedTeam.id);
+            greedyAllocation[slotLabel] = matchedTeam;
+            assignedGreedyIds.add(matchedTeam.id);
         }
     });
 
-    return allocation;
+    return greedyAllocation;
 }
 
 /**
