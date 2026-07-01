@@ -49,6 +49,7 @@ const PLAYER_NAME_MAP = {
     // Netherlands
     "Kvdi Khakpv": "Cody Gakpo",
     "Cody Khakpv": "Cody Gakpo",
+    "C. Summerville": "Crysencio Summerville",
     
     // Uzbekistan
     "Abas Bk Fiz Allh Af": "Abbosbek Fayzullaev",
@@ -56,7 +57,8 @@ const PLAYER_NAME_MAP = {
     
     // Switzerland
     "Jvhan Mnzambi": "Johan Minzambi",
-    "Rvbn Vargas": "Ruben Vargas",
+    "Rvbn Vargas": "Rubén Vargas",
+    "Ruben Vargas": "Rubén Vargas",
     
     // Czech Republic
     "mikhal Sadilk": "Michal Sadílek",
@@ -68,7 +70,26 @@ const PLAYER_NAME_MAP = {
     "Asmaail Saibari": "Ismael Saibari",
     
     // USA
-    "Kamrvn Bargs": "Cameron Burgess"
+    "Kamrvn Bargs": "Cameron Burgess",
+
+    // France
+    "K. Mbappé": "Kylian Mbappé",
+    "B. Barcola": "Bradley Barcola",
+
+    // Germany
+    "K. Havertz": "Kai Havertz",
+
+    // Ivory Coast
+    "A. Diallo": "Amad Diallo",
+
+    // Mexico
+    "R. Jiménez": "Raúl Jiménez",
+
+    // Brazil
+    "V. Júnior": "Vinícius Júnior",
+
+    // DR Congo
+    "Y. Wissa": "Yoane Wissa"
 };
 
 function normalizePlayerName(name) {
